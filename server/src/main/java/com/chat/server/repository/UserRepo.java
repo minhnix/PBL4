@@ -21,9 +21,9 @@ public interface UserRepo extends MongoRepository<User, Integer> {
 
     Optional<User> findById(Long id);
 
-    Optional<Object> findByUsername(String username);
+    Optional<User> findByUsername(String username);
 
     Page<User> findByUsernameContainingOrEmailContainingOrPhoneNumberContaining(String keyword, String keyword1, String keyword2, Pageable pageable);
 
-    Optional<Object> findByUsernameOrEmail(String usernameOrEmail, String usernameOrEmail1);
+    Optional<User> findByUsernameOrEmail(String usernameOrEmail, String usernameOrEmail1);
 }

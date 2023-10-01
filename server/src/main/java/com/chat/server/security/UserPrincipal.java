@@ -22,7 +22,6 @@ public class UserPrincipal implements UserDetails {
     }
 
     public static UserPrincipal create(User user) {
-
         return new UserPrincipal(
                 user
         );
@@ -36,7 +35,7 @@ public class UserPrincipal implements UserDetails {
         this.user = user;
     }
 
-    public Long getId() {
+    public String getId() {
         return user.getId();
     }
 

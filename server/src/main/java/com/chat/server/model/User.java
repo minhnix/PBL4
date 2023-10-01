@@ -1,11 +1,8 @@
 package com.chat.server.model;
 
-//import jakarta.persistence.*;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Pattern;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,28 +10,19 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @ToString
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@Builder
 public class User {
     @Id
-    private Long id;
-
+    private String id;
     private String username;
-
     private String email;
-
+    @JsonIgnore
     private String password;
     @Pattern(regexp = "(\\+?84|0[3|5|7|8|9])\\d{8}", message = "Phone number invalid")
     private String phoneNumber;
     private String firstname;
     private String lastname;
     private String address;
-
-    public User(String username, String email, String password, String phoneNumber) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.phoneNumber = phoneNumber;
-    }
-
-
-
 }

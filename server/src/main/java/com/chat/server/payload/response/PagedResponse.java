@@ -1,8 +1,16 @@
 package com.chat.server.payload.response;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.domain.Page;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class PagedResponse<T> {
 
     private List<T> content = new ArrayList<>();
@@ -11,10 +19,6 @@ public class PagedResponse<T> {
     private long totalElements;
     private int totalPages;
     private boolean isLast;
-
-    public PagedResponse() {
-
-    }
 
     public PagedResponse(List<T> content, int page, int size, long totalElements, int totalPages, boolean last) {
         this.content = content;
@@ -25,51 +29,7 @@ public class PagedResponse<T> {
         this.isLast = last;
     }
 
-    public List<T> getContent() {
-        return content;
-    }
-
-    public void setContent(List<T> content) {
-        this.content = content;
-    }
-
-    public int getPage() {
-        return page;
-    }
-
-    public void setPage(int page) {
-        this.page = page;
-    }
-
-    public int getSize() {
-        return size;
-    }
-
-    public void setSize(int size) {
-        this.size = size;
-    }
-
-    public long getTotalElements() {
-        return totalElements;
-    }
-
-    public void setTotalElements(long totalElements) {
-        this.totalElements = totalElements;
-    }
-
-    public int getTotalPages() {
-        return totalPages;
-    }
-
-    public void setTotalPages(int totalPages) {
-        this.totalPages = totalPages;
-    }
-
-    public boolean isLast() {
-        return isLast;
-    }
-
-    public void setLast(boolean last) {
-        this.isLast = last;
+    public PagedResponse(Page<T> page) {
+        this(page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages(), page.isLast());
     }
 }

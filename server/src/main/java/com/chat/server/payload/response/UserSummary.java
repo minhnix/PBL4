@@ -11,8 +11,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 public class UserSummary {
-    private Long id;
+    private String id;
     private String username;
     private String email;
-
 }
