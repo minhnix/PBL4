@@ -48,7 +48,7 @@ html {
   height: 796px;
   position: relative;
   width: 490px;
-  transition: all 300ms ease-in;
+  transition: all 300ms ease;
   box-sizing: border-box;
 
 }
