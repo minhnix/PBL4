@@ -12,7 +12,7 @@ html {
 }
 
 .box {
-  background-color: #ecf0f3;
+  background-color: #ecf0f2;
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -23,14 +23,14 @@ html {
 }
 
 .wrapper {
-  background-color: #ecf0f3;
+  background-color: #ecf0f2;
   height: 1024px;
   width: 1440px;
 }
 
 .content {
   align-items: flex-start;
-  background-color: #ecf0f3;
+  background-color: #ecf0f2;
   border-radius: 24px;
   box-shadow: 10px 10px 25px #a5a8aae6, -10px -10px 20px #ffffffe6, inset -1px -1px 2px #a5a8aa80,
     inset 1px 1px 2px #ffffff99;
@@ -42,13 +42,13 @@ html {
 }
 
 .side {
-  background-color: #ecf0f3;
+  background-color: #ecf0f2;
   box-shadow: 5px 5px 13px #bdc0c2e6, -5px -5px 10px #ffffffe6, 5px -5px 10px #bdc0c233, -5px 5px 10px #bdc0c233,
     inset -1px -1px 2px #bdc0c280, inset 1px 1px 2px #ffffff4c;
   height: 796px;
   position: relative;
   width: 490px;
-  transition: all 300ms ease;
+  transition: all 1200ms ease;
   box-sizing: border-box;
 
 }
@@ -128,7 +128,7 @@ html {
   height: 796px;
   position: relative;
   width: 714px;
-  transition: transform 300ms ease-in;
+  transition: all 1200ms ease;
 }
 
 

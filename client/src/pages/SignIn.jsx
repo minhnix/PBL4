@@ -4,6 +4,8 @@ import {
   AiOutlineEyeInvisible,
   AiOutlineClose,
 } from "react-icons/ai";
+import { TfiHelpAlt } from "react-icons/tfi";
+import { isEmail, isPassword, isUsername } from "../utils/validation";
 export const SignUp = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -13,11 +15,14 @@ export const SignUp = () => {
     username: "",
     password: "",
   });
-  const [validation, setValidation] = useState({
-    email: true,
-    username: true,
-    password: true,
-  });
+  const [isEmptyEmail, setIsEmptyEmail] = useState(true);
+  const [isEmptyUsername, setIsEmptyUsername] = useState(true);
+  const [isEmptyPassword, setIsEmptyPassword] = useState(true);
+  const [isValidEmail, setIsValidEmail] = useState(true);
+  const [isValidUsername, setIsValidUsername] = useState(true);
+  const [isValidPassword, setIsValidPassword] = useState(true);
+  const [showMailHelp, setShowMailHelp] = useState(false);
+  const [showUsernameHelp, setShowUsernameHelp] = useState(false);
   useEffect(() => {
     const signUpButton = document.getElementById("signUp");
     const container = document.querySelector(".box");
@@ -28,6 +33,12 @@ export const SignUp = () => {
       setShowPassword(false);
       setLoginUser({ username: "", password: "" });
       setRegUser({ email: "", username: "", password: "" });
+      setIsEmptyEmail(true);
+      setIsEmptyUsername(true);
+      setIsEmptyPassword(true);
+      setIsValidEmail(true);
+      setIsValidUsername(true);
+      setIsValidPassword(true);
       document.querySelector("input[name='password']").type = "password";
       document.querySelectorAll("input")?.forEach((item) => (item.value = ""));
     });
@@ -54,55 +65,52 @@ export const SignUp = () => {
   };
 
   const handleSubmit = (e) => {
+    e.preventDefault();
     if (isSignUp) {
-      if (
-        regUser.email === "" ||
-        regUser.email === null ||
-        regUser.email.length == 0
-      ) {
-        setValidation({ ...validation, email: false });
+      if (regUser.email.trim() === "") {
+        setIsEmptyEmail(false);
+      } else {
+        setIsEmptyEmail(true);
       }
-      if (
-        regUser.username === "" ||
-        regUser.username === null ||
-        regUser.username.length == 0
-      ) {
-        setValidation({ ...validation, username: false });
+
+      setIsValidEmail(isEmail(regUser.email));
+
+      if (regUser.username.trim() === "") {
+        setIsEmptyUsername(false);
+      } else {
+        setIsEmptyUsername(true);
       }
-      if (
-        regUser.password === "" ||
-        regUser.password === null ||
-        regUser.password.length == 0
-      ) {
-        setValidation({ ...validation, password: false });
+      setIsValidUsername(isUsername(regUser.username));
+      if (regUser.password.trim() === "") {
+        setIsEmptyPassword(false);
+      } else {
+        setIsEmptyPassword(true);
       }
-    } else {
-      if (
-        loginUser.username === "" ||
-        loginUser.username === null ||
-        loginUser.username.length == 0
-      ) {
-        setValidation({ ...validation, username: false });
+      setIsValidPassword(isPassword(regUser.password));
+    }
+    if (!isSignUp) {
+      if (loginUser.username.trim() === "") {
+        setIsEmptyUsername(false);
+      } else {
+        setIsEmptyUsername(true);
       }
-      if (
-        loginUser.password === "" ||
-        loginUser.password === null ||
-        loginUser.password.length == 0
-      ) {
-        setValidation({ ...validation, password: false });
+      if (loginUser.password.trim() === "") {
+        setIsEmptyPassword(false);
+      } else {
+        setIsEmptyPassword(true);
       }
     }
 
-    e.preventDefault();
     if (isSignUp) console.log(regUser);
     else console.log(loginUser);
+    console.log(isEmptyEmail, isEmptyPassword, isEmptyUsername);
   };
-  console.log(validation);
+
   return (
     <div className="box">
       <div className="wrapper">
         <div className="content">
-          <div className="side">
+          <div className="side absolute z-50">
             <div className="h-[796px] relative overflow-hidden">
               <div
                 className={`top-balloon w-[300px] h-[300px] rounded-full bg-[#ecf0f3] absolute deep-neumorphism top-[-20%] ${
@@ -140,47 +148,88 @@ export const SignUp = () => {
               </div>
             </div>
           </div>
-          <div className="main">
+          <div className="main absolute z-0">
             <div className="header-contain">
               <div className="text-wrapper-4">
                 {isSignUp ? "Create Account" : "Sign In To App"}
               </div>
-              <span className="bg-red-200 px-4 py-4 rounded w-[340px] font-medium flex items-center justify-center">
-                Incorrect username or password.{" "}
-                <span>
-                  <AiOutlineClose className="text-red-400 ml-2 cursor-pointer" />
+              {!isSignUp && (
+                <span className="bg-red-100 px-4 py-4 rounded w-[340px] border border-red-400 text-red-400 font-medium text-sm flex items-center justify-center">
+                  Incorrect username or password.{" "}
+                  <span>
+                    <AiOutlineClose className="text-red-400 ml-2 cursor-pointer" />
+                  </span>
                 </span>
-              </span>
+              )}
               <div className="frame-5">
                 {isSignUp && (
                   <>
-                    <input
-                      className="px-4 py-2 rounded-lg outline-none deep-neumorphism min-w-[340px]"
-                      type="email"
-                      placeholder="Email"
-                      name="email"
-                      onChange={handleChange}
-                    />
-                    <span className="text-red-500 font-medium text-md px-4">
-                      Email must not be empty!.
-                    </span>
+                    <div className="flex items-center">
+                      <input
+                        className={`pl-4 pr-8 py-3 rounded-lg outline-none deep-neumorphism min-w-[340px] ${
+                          !isValidEmail && "bg-red-100"
+                        } text-sm`}
+                        type="email"
+                        placeholder="Email"
+                        name="email"
+                        autoComplete="off"
+                        onChange={handleChange}
+                      />
+                      <TfiHelpAlt
+                        className="absolute right-3 text-[#8090CB] cursor-pointer"
+                        onMouseEnter={() => setShowMailHelp(true)}
+                        onMouseLeave={() => setShowMailHelp(false)}
+                      />
+                      {showMailHelp && (
+                        <span className="w-[150px] h-[30px] border border-gray-400 rounded bg-gray-100 text-[#8090CB] absolute right-[-46%] flex items-center">
+                          <p className="text-[12px] px-2">- Must be gmail.</p>
+                        </span>
+                      )}
+                    </div>
+                    {!isEmptyEmail && (
+                      <span className="text-red-500 font-medium text-sm px-4">
+                        Email must be not empty!.
+                      </span>
+                    )}
                   </>
                 )}
-                <input
-                  className="px-4 py-2 rounded-lg outline-none deep-neumorphism min-w-[340px]"
-                  type="text"
-                  placeholder="Username"
-                  name="username"
-                  onChange={handleChange}
-                />
-                {!validation.username && (
-                  <span className="text-red-500 font-medium text-md px-4">
-                    Username must not be empty!.
+                <div className="flex items-center">
+                  <input
+                    className={`pl-4 pr-8 py-3 rounded-lg outline-none deep-neumorphism min-w-[340px] ${
+                      !isValidUsername && "bg-red-100"
+                    } text-sm`}
+                    type="text"
+                    placeholder="Username"
+                    name="username"
+                    onChange={handleChange}
+                    autoComplete="off"
+                  />
+                  {isSignUp && (
+                    <TfiHelpAlt
+                      className="absolute right-3 text-[#8090CB] cursor-pointer"
+                      onMouseEnter={() => setShowUsernameHelp(true)}
+                      onMouseLeave={() => setShowUsernameHelp(false)}
+                    />
+                  )}
+                  {showUsernameHelp && (
+                    <span className="w-[150px] min-h-[30px] border border-gray-400 rounded bg-gray-100 text-[#8090CB] absolute right-[-46%] flex flex-col items-center">
+                      <p className="text-[12px] px-2">- Minimum length is 6.</p>
+                      <p className="text-[12px] px-2">
+                        - Contain letters and numbers.
+                      </p>
+                    </span>
+                  )}
+                </div>
+                {!isEmptyUsername && (
+                  <span className="text-red-500 font-medium text-sm px-4">
+                    Username must be not empty!.
                   </span>
                 )}
                 <div className="relative">
                   <input
-                    className="px-4 py-2 rounded-lg outline-none deep-neumorphism min-w-[340px]"
+                    className={`pl-4 pr-8 py-3 rounded-lg outline-none deep-neumorphism min-w-[340px] ${
+                      !isValidPassword && "bg-red-100"
+                    } text-sm`}
                     type="password"
                     placeholder="Password"
                     name="password"
@@ -188,29 +237,35 @@ export const SignUp = () => {
                   />
 
                   <span
-                    className="absolute right-4 top-2.5 cursor-pointer"
+                    className="absolute right-2 top-2.5 cursor-pointer"
                     onClick={handleShowPassword}
                   >
                     {isSignUp ? (
                       regUser.password !== "" ? (
                         !showPassword ? (
-                          <AiOutlineEye size={24} />
+                          <AiOutlineEye size={22} className="text-[#8090CB]" />
                         ) : (
-                          <AiOutlineEyeInvisible size={24} />
+                          <AiOutlineEyeInvisible
+                            size={22}
+                            className="text-[#8090CB]"
+                          />
                         )
                       ) : null
                     ) : loginUser.password !== "" ? (
                       !showPassword ? (
-                        <AiOutlineEye size={24} />
+                        <AiOutlineEye size={22} className="text-[#8090CB]" />
                       ) : (
-                        <AiOutlineEyeInvisible size={24} />
+                        <AiOutlineEyeInvisible
+                          size={22}
+                          className="text-[#8090CB]"
+                        />
                       )
                     ) : null}
                   </span>
                 </div>
-                {!validation.username && (
-                  <span className="text-red-500 font-medium text-md px-4">
-                    Password must not be empty!.
+                {!isEmptyPassword && (
+                  <span className="text-red-500 font-medium text-sm px-4">
+                    Password must be not empty!.
                   </span>
                 )}
               </div>
