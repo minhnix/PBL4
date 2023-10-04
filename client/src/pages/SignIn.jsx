@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/auth.context.jsx";
+import axios from "axios";
+
 import {
   AiOutlineEye,
   AiOutlineEyeInvisible,
@@ -6,7 +10,12 @@ import {
 } from "react-icons/ai";
 import { TfiHelpAlt } from "react-icons/tfi";
 import { isEmail, isPassword, isUsername } from "../utils/validation";
+
 export const SignUp = () => {
+  const { login, setState } = useAuth();
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginUser, setLoginUser] = useState({ username: "", password: "" });
@@ -24,6 +33,10 @@ export const SignUp = () => {
   const [showMailHelp, setShowMailHelp] = useState(false);
   const [showUsernameHelp, setShowUsernameHelp] = useState(false);
   useEffect(() => {
+    if (localStorage.getItem("token") != null) {
+      navigate("/");
+    }
+
     const signUpButton = document.getElementById("signUp");
     const container = document.querySelector(".box");
 
@@ -41,6 +54,7 @@ export const SignUp = () => {
       setIsValidPassword(true);
       document.querySelector("input[name='password']").type = "password";
       document.querySelectorAll("input")?.forEach((item) => (item.value = ""));
+      setError("");
     });
   }, []);
 
@@ -62,6 +76,54 @@ export const SignUp = () => {
         ...loginUser,
         [e.target.name]: e.target.value,
       });
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    const reqBody = {
+      email: regUser.email,
+      username: regUser.username,
+      password: regUser.password,
+      address: "",
+      firstname: "",
+      lastname: "",
+    };
+    console.log("🚀 ~ file: SignIn.jsx:78 ~ handleSignUp ~ reqBody:", reqBody);
+
+    if (
+      regUser.email.trim() !== "" &&
+      regUser.username.trim() !== "" &&
+      regUser.password.trim() !== ""
+    ) {
+      try {
+        const res = await axios.post(
+          "http://localhost:8080/api/v1/auth/signup",
+          reqBody
+        );
+        handlerReset();
+        setIsSignUp(!isSignUp);
+      } catch (err) {
+        console.log("🚀 ~ file: SignIn.jsx:93 ~ handleSignUp ~ err:", err);
+        setError(err.response.data.message);
+      }
+    }
+  };
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+
+    console.log("🚀 ~ file: SignIn.jsx:25 ~ handleSignIn ~ err:", loginUser);
+    if (loginUser.username.trim() !== "" && loginUser.password.trim() !== "") {
+      try {
+        const res = await login(loginUser.username, loginUser.password);
+        setState(res.data.accessToken);
+        localStorage.setItem("token", res.data.accessToken);
+        navigate("/");
+      } catch (err) {
+        console.log("🚀 ~ file: SignIn.jsx:25 ~ handleSignIn ~ err:", err);
+        setError(err.response.data.message);
+      }
+    }
   };
 
   const handleSubmit = (e) => {
@@ -87,7 +149,10 @@ export const SignUp = () => {
         setIsEmptyPassword(true);
       }
       setIsValidPassword(isPassword(regUser.password));
+
+      handleSignUp(e);
     }
+
     if (!isSignUp) {
       if (loginUser.username.trim() === "") {
         setIsEmptyUsername(false);
@@ -99,13 +164,17 @@ export const SignUp = () => {
       } else {
         setIsEmptyPassword(true);
       }
+      handleSignIn(e);
     }
 
-    if (isSignUp) console.log(regUser);
-    else console.log(loginUser);
-    console.log(isEmptyEmail, isEmptyPassword, isEmptyUsername);
+    // if (isSignUp) console.log(regUser);
+    // else console.log(loginUser);
+    // console.log(isEmptyEmail, isEmptyPassword, isEmptyUsername);
   };
 
+  const handlerReset = () => {
+    document.querySelectorAll("input")?.forEach((item) => (item.value = ""));
+  };
   return (
     <div className="box">
       <div className="wrapper">
@@ -153,11 +222,16 @@ export const SignUp = () => {
               <div className="text-wrapper-4">
                 {isSignUp ? "Create Account" : "Sign In To App"}
               </div>
-              {!isSignUp && (
+              {error && (
                 <span className="bg-red-100 px-4 py-4 rounded w-[340px] border border-red-400 text-red-400 font-medium text-sm flex items-center justify-center">
-                  Incorrect username or password.{" "}
+                  {error}
                   <span>
-                    <AiOutlineClose className="text-red-400 ml-2 cursor-pointer" />
+                    <AiOutlineClose
+                      className="text-red-400 ml-2 cursor-pointer"
+                      onClick={() => {
+                        setError("");
+                      }}
+                    />
                   </span>
                 </span>
               )}
