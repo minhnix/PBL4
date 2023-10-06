@@ -75,7 +75,7 @@ public class UserService {
         return new PagedResponse<>(users);
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUser(String id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         userRepo.delete(user);
