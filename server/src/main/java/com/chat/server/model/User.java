@@ -6,6 +6,9 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
+import java.util.Set;
+
 @Document(collection = "User")
 @Getter
 @Setter
@@ -25,4 +28,7 @@ public class User {
     private String firstname;
     private String lastname;
     private String address;
+    private Boolean isOnline;
+    private LocalDateTime lastOnline;
+    private Set<String> channels;
 }

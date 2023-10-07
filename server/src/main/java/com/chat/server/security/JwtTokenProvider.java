@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.security.SignatureException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,17 +30,17 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication) {
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         Map<String, Object> claims = new HashMap<>();
-        UserSummary userSummary = new UserSummary(userPrincipal.getId(), userPrincipal.getUsername(), userPrincipal.getEmail());
+        UserSummary userSummary = new UserSummary(customUserDetails.getId(), customUserDetails.getUsername(), customUserDetails.getEmail());
         claims.put("user", userSummary);
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userPrincipal.getId())
+                .setSubject(customUserDetails.getId())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
