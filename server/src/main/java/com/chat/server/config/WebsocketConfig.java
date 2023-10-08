@@ -1,7 +1,5 @@
 package com.chat.server.config;
 
-import com.chat.server.security.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,12 +13,14 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
-    private final HeaderParamInterceptor headerParamInterceptor;
+    private final AuthenticationInterceptor authenticationInterceptor;
+    private final GroupInterceptor groupInterceptor;
     @Value("${websocket.allowed.origin}")
     private String[] allowedOrigin;
 
-    public WebsocketConfig(HeaderParamInterceptor headerParamInterceptor) {
-        this.headerParamInterceptor = headerParamInterceptor;
+    public WebsocketConfig(AuthenticationInterceptor authenticationInterceptor, GroupInterceptor groupInterceptor) {
+        this.authenticationInterceptor = authenticationInterceptor;
+        this.groupInterceptor = groupInterceptor;
     }
 
     @Bean
@@ -40,13 +40,13 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.setApplicationDestinationPrefixes("/app");
-        config.setUserDestinationPrefix("/user");
-        config.enableSimpleBroker("/topic", "/queue");
+        config.setApplicationDestinationPrefixes("/app")
+                .setUserDestinationPrefix("/user")
+                .enableSimpleBroker("/topic", "/queue");
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(headerParamInterceptor);
+        registration.interceptors(authenticationInterceptor, groupInterceptor);
     }
 }

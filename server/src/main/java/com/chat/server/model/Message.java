@@ -1,5 +1,6 @@
 package com.chat.server.model;
 
+import com.chat.server.payload.request.ChatMessage;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -19,5 +20,6 @@ public class Message {
     private String sender;
     private String channelId;
     private String content;
+    private ChatMessage.Type type;
     private LocalDateTime createdAt;
 }

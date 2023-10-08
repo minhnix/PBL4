@@ -19,12 +19,12 @@ import java.security.Principal;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class HeaderParamInterceptor implements ChannelInterceptor {
+public class AuthenticationInterceptor implements ChannelInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
 
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        log.info("Pre Send: ");
+        log.info("Pre Send: Authentication ");
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             Assert.notNull(accessor.getHeader("Authorization"), "No authentication token");
             String token = accessor.getFirstNativeHeader("Authorization");
@@ -38,6 +38,5 @@ public class HeaderParamInterceptor implements ChannelInterceptor {
             }
         }
         return message;
-
     }
 }
