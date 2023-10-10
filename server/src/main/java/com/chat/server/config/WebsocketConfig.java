@@ -45,8 +45,8 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                 .enableSimpleBroker("/topic", "/queue");
     }
 
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authenticationInterceptor, groupInterceptor);
-    }
+//    @Override
+//    public void configureClientInboundChannel(ChannelRegistration registration) {
+//        registration.interceptors(authenticationInterceptor, groupInterceptor);
+//    }
 }

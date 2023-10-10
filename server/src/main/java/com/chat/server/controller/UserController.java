@@ -5,17 +5,16 @@ import com.chat.server.model.User;
 import com.chat.server.payload.response.PagedResponse;
 import com.chat.server.service.impl.UserServiceImpl;
 import com.chat.server.util.AppConstants;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
 
 
 @RestController
 @RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
 public class UserController {
     private final UserServiceImpl userService;
-
-    public UserController(UserServiceImpl userService) {
-        this.userService = userService;
-    }
 
     @GetMapping
     public PagedResponse<User> getAllUsers(
