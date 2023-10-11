@@ -5,7 +5,9 @@ import com.chat.server.util.CursorPageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.stereotype.Component;
 
+@Component
 public class QueryCursorPagination<TC> implements QueryPagination<TC> {
 
     @Override

@@ -2,6 +2,7 @@ package com.chat.server.repository;
 
 
 import com.chat.server.model.User;
+import com.chat.server.repository.custom.CustomizedUserRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -11,7 +12,7 @@ import java.util.Optional;
 
 
 @Repository
-public interface UserRepo extends MongoRepository<User, String> {
+public interface UserRepo extends MongoRepository<User, String>, CustomizedUserRepo {
 
     Optional<User> findIdByUsername(String username);
 

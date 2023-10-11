@@ -27,6 +27,9 @@ public class ChannelServiceImpl implements ChannelService {
     private final UserRepo userRepo;
 
     public Channel createChannel(String type, String name, Set<String> userIds) {
+        if (type.equals("pm") && userIds.size() != 2) {
+            throw new BadRequestException("Number of user must be 2");
+        }
         for (String userId : userIds) {
             User user = userRepo.findById(userId).orElseThrow(() -> new BadRequestException("User not found"));
             log.info("User: {}", user);
@@ -55,34 +58,31 @@ public class ChannelServiceImpl implements ChannelService {
     }
 
     public void addUserToChannel(String channelId, String userId) {
-        Channel chanel = channelRepo.findById(channelId).orElseThrow(() -> new BadRequestException("Channel not found"));
-        userRepo.findById(userId).orElseThrow(() -> new BadRequestException("User not found"));
-        if (isUserJoinChannel(channelId, userId)) {
+        Channel channel = channelRepo.findById(channelId).orElseThrow(() -> new BadRequestException("Channel not found"));
+        boolean isUserJoined = channel.getUsers().stream().anyMatch(user -> user.equals(userId));
+        if (isUserJoined) {
             throw new BadRequestException("User already join channel");
         }
-        chanel.getUsers().add(userId);
-        channelRepo.save(chanel);
+        channelRepo.addUserToChannel(userId, channelId);
+        userRepo.addChannelToUser(channelId, userId);
     }
 
     public void removeUserInChannel(String channelId, String userId) {
         Channel channel = channelRepo.findById(channelId).orElseThrow(() -> new BadRequestException("Channel not found"));
-        if (!isUserJoinChannel(channelId, userId)) {
+        boolean isUserJoined = channel.getUsers().stream().anyMatch(user -> user.equals(userId));
+        if (!isUserJoined) {
             throw new BadRequestException("User not join channel");
         }
         if (channel.getUsers().size() == 1) {
             channelRepo.delete(channel);
         } else {
-            channel.getUsers().remove(userId);
-            channelRepo.save(channel);
+            channelRepo.removeUserFromChannel(userId, channelId);
         }
+        userRepo.removeChannelFromUser(channelId, userId);
     }
 
     public boolean isUserJoinChannel(String channelId, String userId) {
-        Channel channel = channelRepo.findById(channelId).orElseThrow(() -> new BadRequestException("Channel not found"));
-        if (channel.getUsers().contains(userId)) {
-            return true;
-        }
-        return false;
+        return channelRepo.existsUserInChannel(channelId, userId);
     }
 
     public PagedResponse<Channel> getAll(int page, int size, String sortBy, String sortDir, String keyword) {

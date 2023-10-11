@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.Instant;
 import java.util.Set;
@@ -17,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class User {
-    @Id
+    @MongoId(FieldType.OBJECT_ID)
     private String id;
     private String username;
     private String email;

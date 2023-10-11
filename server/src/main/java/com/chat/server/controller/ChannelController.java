@@ -68,7 +68,7 @@ public class ChannelController {
     }
 
     @DeleteMapping("/removeUser")
-    public ResponseEntity<?> reomveUser(@Valid @RequestBody UserHelper userHelper) {
+    public ResponseEntity<?> removeUser(@Valid @RequestBody UserHelper userHelper) {
         channelService.removeUserInChannel(userHelper.getIdChannel(), userHelper.getIdUser());
         return ResponseEntity.ok(new ApiResponse(true, "User removed from channel successfully"));
     }
