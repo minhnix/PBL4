@@ -57,7 +57,7 @@ public class ChannelServiceImpl implements ChannelService {
     public void addUserToChannel(String channelId, String userId) {
         Channel chanel = channelRepo.findById(channelId).orElseThrow(() -> new BadRequestException("Channel not found"));
         userRepo.findById(userId).orElseThrow(() -> new BadRequestException("User not found"));
-        if (isUserJoinChannel(channelId, userId) == true) {
+        if (isUserJoinChannel(channelId, userId)) {
             throw new BadRequestException("User already join channel");
         }
         chanel.getUsers().add(userId);
@@ -66,7 +66,7 @@ public class ChannelServiceImpl implements ChannelService {
 
     public void removeUserInChannel(String channelId, String userId) {
         Channel channel = channelRepo.findById(channelId).orElseThrow(() -> new BadRequestException("Channel not found"));
-        if (isUserJoinChannel(channelId, userId) == false) {
+        if (!isUserJoinChannel(channelId, userId)) {
             throw new BadRequestException("User not join channel");
         }
         if (channel.getUsers().size() == 1) {

@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -24,7 +24,7 @@ public class ChatMessage {
     private String channelId;
     private String content;
     private Type type;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }
 
 
