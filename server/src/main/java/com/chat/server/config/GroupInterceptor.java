@@ -26,7 +26,7 @@ public class GroupInterceptor implements ChannelInterceptor {
             if (accessor.getUser() == null)
                 throw new ForbiddenException("Access denied");
             String userId = accessor.getUser().getName();
-            if (!channelService.isUserJoinChannel(destination, userId))
+            if (channelService.isUserJoinChannel(destination, userId))
                 throw new ForbiddenException("Access denied");
         }
         return message;

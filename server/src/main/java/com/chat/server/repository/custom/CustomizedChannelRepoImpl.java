@@ -8,6 +8,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
@@ -23,6 +25,13 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
     public void addUserToChannel(String userId, String channelId) {
         Update update = new Update().addToSet("users", userId);
         updateChannel(update, channelId);
+    }
+
+    @Override
+    public boolean existsUserInChannel(String channelId, String userId) {
+        Query query = Query.query(Criteria.where("id").is(channelId)
+                .andOperator(Criteria.where("users").is(userId)));
+        return template.exists(query, Channel.class);
     }
 
     private void updateChannel(Update updateQuery, String channelId) {

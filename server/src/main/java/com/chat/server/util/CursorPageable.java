@@ -13,4 +13,7 @@ public class CursorPageable<TC> {
     public boolean hasPreviousCursor() {
         return previousCursor != null;
     }
+    public boolean hasNextCursor() {
+        return nextCursor != null;
+    }
 }

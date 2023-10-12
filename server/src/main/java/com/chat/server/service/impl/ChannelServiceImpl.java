@@ -82,7 +82,7 @@ public class ChannelServiceImpl implements ChannelService {
     }
 
     public boolean isUserJoinChannel(String channelId, String userId) {
-        return channelRepo.existsUserInChannel(channelId, userId);
+        return !channelRepo.existsUserInChannel(channelId, userId);
     }
 
     public PagedResponse<Channel> getAll(int page, int size, String sortBy, String sortDir, String keyword) {

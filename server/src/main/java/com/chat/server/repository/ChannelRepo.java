@@ -16,7 +16,4 @@ public interface ChannelRepo extends MongoRepository<Channel, String>, Customize
     Optional<Channel> findById(String id);
 
     Page<Channel> findByNameContaining(String keyword, String keyword1, String keyword2, Pageable pageable);
-
-    @Query("{'_id' : ?0, 'users' : ?1}")
-    boolean existsUserInChannel(String channelId, String userId);
 }

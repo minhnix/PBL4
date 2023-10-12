@@ -10,6 +10,7 @@ import com.chat.server.service.ChannelService;
 import com.chat.server.service.MessageService;
 import com.chat.server.util.CursorPageable;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -23,7 +24,7 @@ import java.util.List;
 public class MessageServiceImpl implements MessageService {
     private final MessageRepo messageRepo;
     private final ChannelService channelService;
-    private final QueryCursorPagination<Instant> queryCursor;
+    private final QueryCursorPagination<ObjectId> queryCursor;
     private final MongoTemplate template;
 
     @Override
@@ -40,22 +41,23 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public CursorPageResponse<Message, Instant> findAllMessageByChannel(String channelId, CursorPageable<Instant> pageable, CustomUserDetails user) {
-        if (!channelService.isUserJoinChannel(channelId, user.getId())) {
+    public CursorPageResponse<Message, String> findAllMessageByChannel(String channelId, CursorPageable<ObjectId> pageable, CustomUserDetails user) {
+        if (channelService.isUserJoinChannel(channelId, user.getId())) {
             throw new ForbiddenException("Access denied");
         }
         Query query = new Query();
         query.addCriteria(Criteria.where("channelId").is(channelId));
         query = queryCursor.apply(query, pageable);
         List<Message> messages = template.find(query, Message.class);
-        CursorPageResponse<Message, Instant> res = new CursorPageResponse<>();
+        CursorPageResponse<Message, String> res = new CursorPageResponse<>();
         res.setData(messages);
-        res.setNextCursor(messages.get(0).getCreatedAt());
-        Instant preCursor = messages.get(messages.size() - 1).getCreatedAt();
+        res.setNextCursor(messages.get(0).getId());
+        String preCursor = messages.get(messages.size() - 1).getId();
         res.setPreviousCursor(
-                messageRepo.existsByChannelIdAndCreatedAtLessThan(channelId, preCursor) ?
+                messageRepo.existsByChannelIdAndIdLessThan(channelId, preCursor) ?
                         preCursor : null
         );
         return res;
+        //todo: handle if createdAt at the same time
     }
 }

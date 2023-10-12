@@ -14,10 +14,12 @@ public class QueryCursorPagination<TC> implements QueryPagination<TC> {
     public Query apply(Query query, CursorPageable<TC> pageable) {
         if (pageable.hasPreviousCursor()) {
             query.addCriteria(Criteria.where(pageable.getColumnName()).lt(pageable.getPreviousCursor()));
-        } else {
+            query.with(Sort.by(Sort.Direction.DESC, pageable.getColumnName()));
+        } else if (pageable.hasNextCursor()) {
             query.addCriteria(Criteria.where(pageable.getColumnName()).gt(pageable.getNextCursor()));
-        }
-        query.with(Sort.by(Sort.Direction.DESC, pageable.getColumnName()));
+            query.with(Sort.by(Sort.Direction.ASC, pageable.getColumnName()));
+        } else
+            query.with(Sort.by(Sort.Direction.DESC, pageable.getColumnName()));
         query.limit(pageable.getSize());
         return query;
     }
