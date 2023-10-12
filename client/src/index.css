@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  @variants responsive {
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      /* IE and Edge */
+      scrollbar-width: none;
+      /* Firefox */
+    }
+  }
+}
 
 html {
   font-family: 'Montserrat', sans-serif;
@@ -9,6 +26,63 @@ html {
 
 .deep-neumorphism {
   box-shadow: inset 2px 2px 5px #bfc2c5e6, inset -2px -2px 4px #ffffffe6, -1px -1px 2px #bfc2c580, 1px 1px 2px #ffffff4c;
+}
+
+.deep-neumorphism-dark {
+  box-shadow: 1px 1px 2px rgba(42, 46, 58, 0.3), -1px -1px 2px rgba(10, 12, 14, 0.5), inset -1px 1px 2px rgba(10, 12, 14, 0.2), inset 1px -1px 2px rgba(10, 12, 14, 0.2), inset -1px -1px 2px rgba(42, 46, 58, 0.9), inset 1px 1px 3px rgba(10, 12, 14, 0.9);
+}
+
+.float-neumorphism-dark {
+  box-shadow: -11px 11px 22px rgba(10, 12, 14, 0.2), 11px -11px 22px rgba(10, 12, 14, 0.2), -11px -11px 22px rgba(42, 46, 58, 0.9), 11px 11px 28px rgba(10, 12, 14, 0.9), inset 1px 1px 2px rgba(42, 46, 58, 0.3), inset -1px -1px 2px rgba(10, 12, 14, 0.5);
+}
+
+.float-neumorphism {
+  box-shadow: 10px 10px 25px #a5a8aae6, -10px -10px 20px #ffffffe6, inset -1px -1px 2px #a5a8aa80,
+    inset 1px 1px 2px #ffffff99;
+}
+
+.float-neumorphism-chat {
+  box-shadow: -6px 6px 12px rgba(165, 168, 170, 0.2), 6px -6px 12px rgba(165, 168, 170, 0.2), -6px -6px 12px rgba(255, 255, 255, 0.9), 6px 6px 15px rgba(165, 168, 170, 0.9), inset 1px 1px 2px rgba(255, 255, 255, 0.3), inset -1px -1px 2px rgba(165, 168, 170, 0.5);
+}
+
+.float-neumorphism-chat-dark {
+  box-shadow: -6px 6px 12px rgba(18, 20, 25, 0.2), 6px -6px 12px rgba(18, 20, 25, 0.2), -6px -6px 12px rgba(34, 38, 47, 0.9), 6px 6px 15px rgba(18, 20, 25, 0.9), inset 1px 1px 2px rgba(34, 38, 47, 0.3), inset -1px -1px 2px rgba(18, 20, 25, 0.5);
+}
+
+.deep-neumorphism-item {
+  box-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3), -1px -1px 2px rgba(165, 168, 170, 0.5), inset -6px 6px 12px rgba(165, 168, 170, 0.2), inset 6px -6px 12px rgba(165, 168, 170, 0.2), inset -6px -6px 12px rgba(255, 255, 255, 0.9), inset 6px 6px 15px rgba(165, 168, 170, 0.9);
+}
+
+.deep-neumorphism-item-dark {
+  box-shadow: 1px 1px 2px rgba(34, 38, 47, 0.3), -1px -1px 2px rgba(18, 20, 25, 0.5), inset -4px 4px 8px rgba(18, 20, 25, 0.2), inset 4px -4px 8px rgba(18, 20, 25, 0.2), inset -4px -4px 8px rgba(34, 38, 47, 0.9), inset 4px 4px 10px rgba(18, 20, 25, 0.9);
+}
+
+.title-neumorphism-dark {
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3), -1px -1px 2px rgba(189, 192, 194, 0.5);
+}
+
+.float-dot {
+  box-shadow: -18px 18px 36px rgba(62, 69, 98, 0.2), 18px -18px 36px rgba(62, 69, 98, 0.2), -18px -18px 36px rgba(246, 255, 255, 0.9), 18px 18px 45px rgba(62, 69, 98, 0.9), inset 1px 1px 2px rgba(246, 255, 255, 0.3), inset -1px -1px 2px rgba(62, 69, 98, 0.5);
+}
+
+.chat-item-dark:hover {
+  box-shadow: 1px 1px 2px rgba(42, 46, 58, 0.3), -1px -1px 2px rgba(10, 12, 14, 0.5), inset -4px 4px 8px rgba(10, 12, 14, 0.2), inset 4px -4px 8px rgba(10, 12, 14, 0.2), inset -4px -4px 8px rgba(42, 46, 58, 0.9), inset 4px 4px 10px rgba(10, 12, 14, 0.9);
+}
+
+.chat-item:hover {
+  box-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3), -1px -1px 2px rgba(151, 151, 154, 0.5), inset -5px 5px 10px rgba(151, 151, 154, 0.2), inset 5px -5px 10px rgba(151, 151, 154, 0.2), inset -5px -5px 10px rgba(255, 255, 255, 0.9), inset 5px 5px 13px rgba(151, 151, 154, 0.9);
+}
+
+.chat-item-dark-clicked {
+  box-shadow: 1px 1px 2px rgba(42, 46, 58, 0.3), -1px -1px 2px rgba(10, 12, 14, 0.5), inset -4px 4px 8px rgba(10, 12, 14, 0.2), inset 4px -4px 8px rgba(10, 12, 14, 0.2), inset -4px -4px 8px rgba(42, 46, 58, 0.9), inset 4px 4px 10px rgba(10, 12, 14, 0.9);
+}
+
+.chat-item-clicked {
+  box-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3), -1px -1px 2px rgba(151, 151, 154, 0.5), inset -5px 5px 10px rgba(151, 151, 154, 0.2), inset 5px -5px 10px rgba(151, 151, 154, 0.2), inset -5px -5px 10px rgba(255, 255, 255, 0.9), inset 5px 5px 13px rgba(151, 151, 154, 0.9);
+}
+
+.float-neumorphism-chatBox {
+  box-shadow: -2px 2px 4px rgba(102, 115, 162, 0.2), 2px -2px 4px rgba(102, 115, 162, 0.2), -2px -2px 4px rgba(154, 173, 244, 0.9), 2px 2px 5px rgba(102, 115, 162, 0.9), inset 1px 1px 2px rgba(154, 173, 244, 0.3), inset -1px -1px 2px rgba(102, 115, 162, 0.5);
 }
 
 .box {
@@ -207,4 +281,39 @@ html {
 .top-balloon,
 .bottom-balloon {
   transition: all .6s ease-in-out;
+}
+
+.feature-btn:active {
+  box-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3), -1px -1px 2px rgba(165, 168, 170, 0.5), inset -6px 6px 12px rgba(165, 168, 170, 0.2), inset 6px -6px 12px rgba(165, 168, 170, 0.2), inset -6px -6px 12px rgba(255, 255, 255, 0.9), inset 6px 6px 15px rgba(165, 168, 170, 0.9);
+}
+
+.feature-btn-dark:active {
+  box-shadow: 1px 1px 2px rgba(42, 46, 58, 0.3), -1px -1px 2px rgba(10, 12, 14, 0.5), inset -1px 1px 2px rgba(10, 12, 14, 0.2), inset 1px -1px 2px rgba(10, 12, 14, 0.2), inset -1px -1px 2px rgba(42, 46, 58, 0.9), inset 1px 1px 3px rgba(10, 12, 14, 0.9);
+
+}
+
+.addChat-btn:active {
+  box-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3), -1px -1px 2px rgba(165, 168, 170, 0.5), inset -6px 6px 12px rgba(165, 168, 170, 0.2), inset 6px -6px 12px rgba(165, 168, 170, 0.2), inset -6px -6px 12px rgba(255, 255, 255, 0.9), inset 6px 6px 15px rgba(165, 168, 170, 0.9);
+}
+
+.addChat-btn-dark:active {
+  box-shadow: 1px 1px 2px rgba(42, 46, 58, 0.3), -1px -1px 2px rgba(10, 12, 14, 0.5), inset -4px 4px 8px rgba(10, 12, 14, 0.2), inset 4px -4px 8px rgba(10, 12, 14, 0.2), inset -4px -4px 8px rgba(42, 46, 58, 0.9), inset 4px 4px 10px rgba(10, 12, 14, 0.9);
+}
+
+.right-chat {
+  position: relative;
+}
+
+.right-chat:hover .right-chat-tooltip {
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.left-chat {
+  position: relative;
+}
+
+.left-chat:hover .left-chat-tooltip {
+  z-index: 10;
+  white-space: nowrap;
 }
