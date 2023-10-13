@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 
-@Repository
 public interface UserRepo extends MongoRepository<User, String>, CustomizedUserRepo {
 
     Optional<User> findIdByUsername(String username);

@@ -6,6 +6,7 @@ import com.chat.server.payload.request.ChannelRequest;
 import com.chat.server.payload.request.SignUpRequest;
 import com.chat.server.payload.request.UserHelper;
 import com.chat.server.payload.response.ApiResponse;
+import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.payload.response.PagedResponse;
 import com.chat.server.service.ChannelService;
 import com.chat.server.service.impl.ChannelServiceImpl;
@@ -49,16 +50,14 @@ public class ChannelController {
         return ResponseEntity.created(location).body(new ApiResponse(true, "Channel create successfully"));
     }
 
-    @GetMapping("/{idChannel}")
-    public ResponseEntity<Channel> findChannel(@PathVariable("idUser") String idUser) {
-        Channel channel = channelService.findChannel(idUser);
-        return ResponseEntity.ok(channel);
+    @GetMapping("/{channelId}")
+    public ResponseEntity<ChannelInfo> findChannel(@PathVariable("channelId") String channelId) {
+        return ResponseEntity.ok(channelService.findChannel(channelId));
     }
 
     @GetMapping("/search/{idUser}")
     public ResponseEntity<Channel> findAllChannelByUser(@PathVariable("idUser") String idUser) {
-        Channel channel = channelService.findChannel(idUser);
-        return ResponseEntity.ok(channel);
+        return null;
     }
 
     @PostMapping("/addUser")

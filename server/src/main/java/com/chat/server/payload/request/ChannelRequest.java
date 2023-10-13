@@ -1,6 +1,7 @@
 package com.chat.server.payload.request;
 
 import lombok.*;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -15,5 +16,5 @@ import java.util.Set;
 public class ChannelRequest {
     private String type;
     private String name;
-    private Set<String> users;
+    private Set<ObjectId> users;
 }

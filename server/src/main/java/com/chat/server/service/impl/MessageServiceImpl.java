@@ -30,7 +30,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public Message saveMessage(ChatMessage chatMessage) {
         Message message = Message.builder()
-                .channelId(chatMessage.getChannelId())
+                .channelId(new ObjectId(chatMessage.getChannelId()))
                 .type(chatMessage.getType())
                 .content(chatMessage.getContent())
                 .sender(chatMessage.getSender())
@@ -42,11 +42,12 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public CursorPageResponse<Message, String> findAllMessageByChannel(String channelId, CursorPageable<ObjectId> pageable, CustomUserDetails user) {
-        if (channelService.isUserJoinChannel(channelId, user.getId())) {
+        if (!channelService.isUserJoinChannel(channelId, user.getId())) {
             throw new ForbiddenException("Access denied");
         }
         Query query = new Query();
-        query.addCriteria(Criteria.where("channelId").is(channelId));
+        ObjectId channelOId = new ObjectId(channelId);
+        query.addCriteria(Criteria.where("channelId").is(channelOId));
         query = queryCursor.apply(query, pageable);
         List<Message> messages = template.find(query, Message.class);
         CursorPageResponse<Message, String> res = new CursorPageResponse<>();
@@ -58,6 +59,5 @@ public class MessageServiceImpl implements MessageService {
                         preCursor : null
         );
         return res;
-        //todo: handle if createdAt at the same time
     }
 }

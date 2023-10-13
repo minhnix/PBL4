@@ -17,7 +17,7 @@ public class QueryCursorPagination<TC> implements QueryPagination<TC> {
             query.with(Sort.by(Sort.Direction.DESC, pageable.getColumnName()));
         } else if (pageable.hasNextCursor()) {
             query.addCriteria(Criteria.where(pageable.getColumnName()).gt(pageable.getNextCursor()));
-            query.with(Sort.by(Sort.Direction.ASC, pageable.getColumnName()));
+            query.with(Sort.by(Sort.Direction.ASC, pageable.getColumnName())); //TODO: FIX NEXT PAGINATION.
         } else
             query.with(Sort.by(Sort.Direction.DESC, pageable.getColumnName()));
         query.limit(pageable.getSize());

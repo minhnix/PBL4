@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
 public interface ChannelRepo extends MongoRepository<Channel, String>, CustomizedChannelRepo {
     Optional<Channel> findById(String id);
 

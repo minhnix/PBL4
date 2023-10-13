@@ -12,9 +12,10 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class CustomizedMessageRepoImpl implements CustomizedMessageRepo {
     private final MongoTemplate template;
+
     @Override
     public boolean existsByChannelIdAndIdLessThan(String channelId, String id) {
-        Query query = Query.query(Criteria.where("channelId").is(channelId)
+        Query query = Query.query(Criteria.where("channelId").is(new ObjectId(channelId))
                 .andOperator(Criteria.where("id").lt(new ObjectId(id))));
         return template.exists(query, Message.class);
     }
