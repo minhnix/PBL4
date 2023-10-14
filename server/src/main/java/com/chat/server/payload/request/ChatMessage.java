@@ -1,5 +1,6 @@
 package com.chat.server.payload.request;
 
+import com.chat.server.model.UserWithUsername;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +20,7 @@ public class ChatMessage {
     }
 
     private String id;
-    private String sender;
+    private UserWithUsername sender;
     private String sendTo;
     private String channelId;
     private String content;

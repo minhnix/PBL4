@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
@@ -22,6 +23,7 @@ public class User {
     public static final String COLLECTION_NAME = "User";
     @MongoId(FieldType.OBJECT_ID)
     private String id;
+    @Indexed
     private String username;
     private String email;
     @JsonIgnore

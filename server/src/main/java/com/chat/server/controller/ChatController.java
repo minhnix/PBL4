@@ -1,6 +1,8 @@
 package com.chat.server.controller;
 
+import com.chat.server.model.UserWithUsername;
 import com.chat.server.payload.request.ChatMessage;
+import com.chat.server.security.UserPrincipal;
 import com.chat.server.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +12,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
-
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -20,9 +20,12 @@ public class ChatController {
     private final SimpMessagingTemplate template;
 
     @MessageMapping("/chat/pm")
-    public void handlePrivateMessage(@Payload ChatMessage chatMessage, Principal principal) {
+    public void handlePrivateMessage(@Payload ChatMessage chatMessage, UserPrincipal principal) {
         log.info("client send chat: {}", chatMessage);
-        chatMessage.setSender(principal.getName());
+        chatMessage.setSender(new UserWithUsername(
+                principal.getName(),
+                principal.getUsername()
+        ));
         chatMessage.setType(ChatMessage.Type.MESSAGE);
 
         messageService.saveMessage(chatMessage);
@@ -30,9 +33,12 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/group/{groupId}")
-    public void handleGroupMessage(@DestinationVariable String groupId, ChatMessage chatMessage, Principal principal) {
+    public void handleGroupMessage(@DestinationVariable String groupId, ChatMessage chatMessage, UserPrincipal principal) {
         log.info("client send to group: {}", chatMessage);
-        chatMessage.setSender(principal.getName());
+        chatMessage.setSender(new UserWithUsername(
+                principal.getName(),
+                principal.getUsername()
+        ));
         chatMessage.setType(ChatMessage.Type.MESSAGE);
 
         messageService.saveMessage(chatMessage);

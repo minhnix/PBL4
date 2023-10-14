@@ -22,7 +22,7 @@ public class CustomizedUserRepoImpl implements CustomizedUserRepo {
 
     @Override
     public void addChannelToUser(String channelId, String userId) {
-        Update update = new Update().addToSet("channels", new ObjectId(channelId));
+        Update update = new Update().push("channels", new ObjectId(channelId));
         updateUser(update, userId);
     }
 

@@ -1,5 +1,6 @@
 package com.chat.server.config;
 
+import com.chat.server.model.User;
 import com.chat.server.security.JwtTokenProvider;
 import com.chat.server.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +32,10 @@ public class AuthenticationInterceptor implements ChannelInterceptor {
             if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
                 token = token.substring(7);
                 jwtTokenProvider.validateToken(token);
-                String userId = jwtTokenProvider.getUserIdFromJWT(token);
-                log.info("userid send: {}", userId);
-                Principal user = new UserPrincipal(userId);
-                accessor.setUser(user);
+                User user = jwtTokenProvider.getUserFromJwt(token);
+                log.info("user send: {}", user);
+                UserPrincipal userPrincipal = new UserPrincipal(user.getId(), user.getUsername());
+                accessor.setUser(userPrincipal);
             }
         }
         return message;

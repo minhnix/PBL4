@@ -1,6 +1,7 @@
 package com.chat.server.security;
 
 
+import com.chat.server.model.User;
 import com.chat.server.payload.response.UserSummary;
 import com.chat.server.repository.UserRepo;
 import io.jsonwebtoken.*;
@@ -52,6 +53,14 @@ public class JwtTokenProvider {
                 .getBody();
 
         return claims.getSubject();
+    }
+
+    public User getUserFromJwt(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody();
+        return (User) claims.get("user");
     }
 
     public boolean validateToken(String authToken) {

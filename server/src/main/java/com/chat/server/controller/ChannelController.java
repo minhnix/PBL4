@@ -8,6 +8,8 @@ import com.chat.server.payload.request.UserHelper;
 import com.chat.server.payload.response.ApiResponse;
 import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.payload.response.PagedResponse;
+import com.chat.server.security.CurrentUser;
+import com.chat.server.security.CustomUserDetails;
 import com.chat.server.service.ChannelService;
 import com.chat.server.service.impl.ChannelServiceImpl;
 import com.chat.server.util.AppConstants;
@@ -15,10 +17,12 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/channels")
@@ -29,15 +33,16 @@ public class ChannelController {
     public final ChannelService channelService;
 
     @GetMapping({"/", ""})
-    public PagedResponse<Channel> getAllChannels(
-            @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
-            @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size,
-            @RequestParam(value = "sortBy", defaultValue = AppConstants.SORT_BY_ID, required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = AppConstants.SORT_ASC, required = false) String sortDir,
-            @RequestParam(value = "keyword", required = false) String keyword
+    public ResponseEntity<?> getAllChannels(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @CurrentUser CustomUserDetails currentUser
     ) {
-        return channelService.getAll(page, size, sortBy, sortDir, keyword);
+        if (currentUser != null && !StringUtils.hasText(keyword)) {
+            return ResponseEntity.ok(channelService.findAllChannelByUser(currentUser.getId()));
+        }
+        return ResponseEntity.ok(channelService.findByKeyword(keyword));
     }
+
 
     @PostMapping("/create")
     public ResponseEntity<?> createChannel(@Valid @RequestBody ChannelRequest channelRequest) {
@@ -53,11 +58,6 @@ public class ChannelController {
     @GetMapping("/{channelId}")
     public ResponseEntity<ChannelInfo> findChannel(@PathVariable("channelId") String channelId) {
         return ResponseEntity.ok(channelService.findChannel(channelId));
-    }
-
-    @GetMapping("/search/{idUser}")
-    public ResponseEntity<Channel> findAllChannelByUser(@PathVariable("idUser") String idUser) {
-        return null;
     }
 
     @PostMapping("/addUser")

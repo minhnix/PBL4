@@ -22,7 +22,7 @@ public class Message {
     public static final String COLLECTION_NAME = "Message";
     @MongoId(FieldType.OBJECT_ID)
     private String id;
-    private String sender;
+    private UserWithUsername sender;
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId channelId;
     private String sendTo;

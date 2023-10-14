@@ -1,5 +1,6 @@
 package com.chat.server;
 
+import com.chat.server.model.UserWithUsername;
 import com.chat.server.payload.request.ChatMessage;
 import com.chat.server.service.MessageService;
 import org.springframework.boot.CommandLineRunner;
@@ -20,41 +21,64 @@ public class ServerApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        for (int i = 0; i < 30; i++) {
-//            ChatMessage chatMessage = ChatMessage.builder()
-//                    .sender("65295a07f911e7012cc6bc0d")
-//                    .channelId("65295a46f911e7012cc6bc11")
-//                    .content("Message" + i)
-//                    .build();
-//            messageService.saveMessage(chatMessage);
-//            ChatMessage chatMessage2 = ChatMessage.builder()
-//                    .sender("65295a0ef911e7012cc6bc0e")
-//                    .channelId("65295a46f911e7012cc6bc11")
-//                    .content(i + "Message")
-//                    .build();
-//            messageService.saveMessage(chatMessage2);
-//            ChatMessage chatMessage3 = ChatMessage.builder()
-//                    .sender("65295a00f911e7012cc6bc0c")
-//                    .channelId("65295a46f911e7012cc6bc11")
-//                    .content(i + "Message")
-//                    .build();
-//            messageService.saveMessage(chatMessage3);
-//        }
-//
-//        for (int i = 0; i < 30; i++) {
-//            ChatMessage chatMessage = ChatMessage.builder()
-//                    .sender("65295a00f911e7012cc6bc0c")
-//                    .channelId("65295a32f911e7012cc6bc10")
-//                    .content("Message" + i)
-//                    .build();
-//            messageService.saveMessage(chatMessage);
-//            ChatMessage chatMessage2 = ChatMessage.builder()
-//                    .sender("65295a0ef911e7012cc6bc0e")
-//                    .channelId("65295a32f911e7012cc6bc10")
-//                    .content(i + "Message")
-//                    .build();
-//            messageService.saveMessage(chatMessage2);
-//        }
+        for (int i = 0; i < 30; i++) {
+            ChatMessage chatMessage = ChatMessage.builder()
+                    .sender(
+                            new UserWithUsername(
+                                    "652a46f195d1c211d2d7fe0a",
+                                    "user1"
+                            )
+                    )
+                    .channelId("652a4819196a4537474a2f78")
+                    .content("Message" + i)
+                    .build();
+            messageService.saveMessage(chatMessage);
+            ChatMessage chatMessage2 = ChatMessage.builder()
+                    .sender(
+                            new UserWithUsername(
+                                    "652a46fc95d1c211d2d7fe0c",
+                                    "user3"
+                            )
+                    )
+                    .channelId("652a4819196a4537474a2f78")
+                    .content(i + "Message")
+                    .build();
+            messageService.saveMessage(chatMessage2);
+            ChatMessage chatMessage3 = ChatMessage.builder()
+                    .sender(
+                            new UserWithUsername(
+                                    "652a46f695d1c211d2d7fe0b",
+                                    "user2"
+                            )
+                    )
+                    .channelId("652a4819196a4537474a2f78")
+                    .content(i + "Message")
+                    .build();
+            messageService.saveMessage(chatMessage3);
+        }
+
+        for (int i = 0; i < 30; i++) {
+            ChatMessage chatMessage = ChatMessage.builder()
+                    .sender(
+                            new UserWithUsername(
+                                    "652a46f695d1c211d2d7fe0b",
+                                    "user2"
+                            )
+                    ).channelId("652a4857196a4537474a2f79")
+                    .content("Message" + i)
+                    .build();
+            messageService.saveMessage(chatMessage);
+            ChatMessage chatMessage2 = ChatMessage.builder()
+                    .sender(
+                            new UserWithUsername(
+                                    "652a46f195d1c211d2d7fe0a",
+                                    "user1"
+                            )
+                    ).channelId("652a4857196a4537474a2f79")
+                    .content(i + "Message")
+                    .build();
+            messageService.saveMessage(chatMessage2);
+        }
 
     }
 }

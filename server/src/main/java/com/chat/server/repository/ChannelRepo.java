@@ -9,10 +9,10 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ChannelRepo extends MongoRepository<Channel, String>, CustomizedChannelRepo {
     Optional<Channel> findById(String id);
-
-    Page<Channel> findByNameContaining(String keyword, String keyword1, String keyword2, Pageable pageable);
+    List<Channel> findByNameContaining(String keyword);
 }
