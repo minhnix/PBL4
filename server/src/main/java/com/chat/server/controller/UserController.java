@@ -8,6 +8,7 @@ import com.chat.server.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 
 @RestController
@@ -30,5 +31,10 @@ public class UserController {
     @GetMapping("/{username}")
     public User getOne(@PathVariable("username") String username) {
         return userService.getOneUser(username);
+    }
+
+    @GetMapping("/search")
+    public List<User> findByKeyword(@RequestParam(value = "q", defaultValue = "") String keyword) {
+        return userService.findByKeyword(keyword);
     }
 }

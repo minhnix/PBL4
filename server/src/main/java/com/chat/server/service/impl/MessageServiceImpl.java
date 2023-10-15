@@ -52,6 +52,9 @@ public class MessageServiceImpl implements MessageService {
         List<Message> messages = template.find(query, Message.class);
         CursorPageResponse<Message, String> res = new CursorPageResponse<>();
         res.setData(messages);
+        if (messages.size() == 0) {
+            return res;
+        }
         res.setNextCursor(messages.get(0).getId());
         String preCursor = messages.get(messages.size() - 1).getId();
         res.setPreviousCursor(

@@ -18,6 +18,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 @Slf4j
@@ -71,5 +73,10 @@ public class UserServiceImpl implements UserService {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         userRepo.delete(user);
+    }
+
+    @Override
+    public List<User> findByKeyword(String keyword) {
+        return userRepo.findByUsernameContaining(keyword);
     }
 }

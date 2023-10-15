@@ -7,6 +7,7 @@ import com.chat.server.model.User;
 import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.payload.response.ChannelMessage;
 import com.chat.server.payload.response.PagedResponse;
+import com.chat.server.payload.response.SearchChannelResponse;
 import com.chat.server.repository.ChannelRepo;
 import com.chat.server.repository.UserRepo;
 import com.chat.server.service.ChannelService;
@@ -49,6 +50,7 @@ public class ChannelServiceImpl implements ChannelService {
     }
 
     public ChannelInfo findChannel(String channelId) {
+        //TODO: authentication
         return channelRepo.findDetailById(channelId).orElseThrow(() -> new BadRequestException("Channel " + channelId + " not found"));
     }
 
@@ -85,8 +87,7 @@ public class ChannelServiceImpl implements ChannelService {
     }
 
     @Override
-    public List<Channel> findByKeyword(String keyword) {
-        return channelRepo.findByNameContaining(keyword);
+    public List<SearchChannelResponse> findByKeyword(String keyword, String userId) {
+        return channelRepo.findByKeyword(keyword, userId);
     }
-
 }

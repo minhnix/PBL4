@@ -3,7 +3,7 @@ package com.chat.server.service;
 import com.chat.server.model.Channel;
 import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.payload.response.ChannelMessage;
-import com.chat.server.payload.response.PagedResponse;
+import com.chat.server.payload.response.SearchChannelResponse;
 import org.bson.types.ObjectId;
 
 import java.util.List;
@@ -16,5 +16,5 @@ public interface ChannelService {
     void addUserToChannel(String channelId, String userId);
     void removeUserInChannel(String channelId, String userId);
     boolean isUserJoinChannel(String channelId, String userId);
-    List<Channel> findByKeyword(String keyword); //find channel and User
+    List<SearchChannelResponse> findByKeyword(String keyword, String userId); //find channel and User
 }

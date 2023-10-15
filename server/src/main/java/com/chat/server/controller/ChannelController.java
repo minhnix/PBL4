@@ -1,5 +1,6 @@
 package com.chat.server.controller;
 
+import com.chat.server.exception.ForbiddenException;
 import com.chat.server.model.Channel;
 import com.chat.server.model.User;
 import com.chat.server.payload.request.ChannelRequest;
@@ -33,25 +34,26 @@ public class ChannelController {
     public final ChannelService channelService;
 
     @GetMapping({"/", ""})
-    public ResponseEntity<?> getAllChannels(
-            @RequestParam(value = "keyword", required = false) String keyword,
-            @CurrentUser CustomUserDetails currentUser
-    ) {
-        if (currentUser != null && !StringUtils.hasText(keyword)) {
-            return ResponseEntity.ok(channelService.findAllChannelByUser(currentUser.getId()));
-        }
-        return ResponseEntity.ok(channelService.findByKeyword(keyword));
+    public ResponseEntity<?> getAllChannels(@CurrentUser CustomUserDetails currentUser) {
+        if (currentUser == null) throw new ForbiddenException("Access Denied");
+        return ResponseEntity.ok(channelService.findAllChannelByUser(currentUser.getId()));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> findByKeyword(
+            @RequestParam(value = "q", defaultValue = "") String keyword,
+            @CurrentUser CustomUserDetails currentUser
+    ) {
+        if (currentUser == null) throw new ForbiddenException("Access Denied");
+        return ResponseEntity.ok(channelService.findByKeyword(keyword, currentUser.getId()));
+    }
 
     @PostMapping("/create")
     public ResponseEntity<?> createChannel(@Valid @RequestBody ChannelRequest channelRequest) {
         Channel channel = channelService.createChannel(channelRequest.getType(), channelRequest.getName(), channelRequest.getUsers());
-
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("api/channels/{name}")
                 .buildAndExpand(channel.getName()).toUri();
-
         return ResponseEntity.created(location).body(new ApiResponse(true, "Channel create successfully"));
     }
 
@@ -71,5 +73,4 @@ public class ChannelController {
         channelService.removeUserInChannel(userHelper.getIdChannel(), userHelper.getIdUser());
         return ResponseEntity.ok(new ApiResponse(true, "User removed from channel successfully"));
     }
-
 }

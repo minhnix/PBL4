@@ -5,17 +5,20 @@ import com.chat.server.model.Message;
 import com.chat.server.model.User;
 import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.payload.response.ChannelMessage;
+import com.chat.server.payload.response.SearchChannelResponse;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -106,6 +109,47 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
             }
         }
         return channelMessages;
+    }
+
+    @Override
+    public List<SearchChannelResponse> findByKeyword(String keyword, String userId) {
+        ObjectId userOId = new ObjectId(userId);
+        List<SearchChannelResponse> responses = new ArrayList<>();
+        responses.addAll(findByKeywordChannelPM(keyword, userOId));
+        responses.addAll(findByKeywordChannelGroup(keyword, userOId));
+        return responses;
+    }
+
+    private List<SearchChannelResponse> findByKeywordChannelPM(String keyword, ObjectId userOId) {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("type").is("pm")
+                        .andOperator(Criteria.where("users").is(userOId))),
+                Aggregation.lookup(User.COLLECTION_NAME, "users", "_id", "userInfo"),
+                Aggregation.unwind("userInfo"),
+                Aggregation.match(Criteria.where("userInfo._id").ne(userOId)
+                        .andOperator(Criteria.where("userInfo.username").regex(keyword))),
+                getProjectSearchChannelResponse("userInfo.username")
+        );
+        AggregationResults<SearchChannelResponse> results = template.aggregate(aggregation, Channel.COLLECTION_NAME, SearchChannelResponse.class);
+        return results.getMappedResults();
+    }
+
+    private List<SearchChannelResponse> findByKeywordChannelGroup(String keyword, ObjectId userOId) {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("type").is("group").andOperator(
+                        Criteria.where("users").is(userOId),
+                        Criteria.where("name").regex(keyword)
+                )),
+                getProjectSearchChannelResponse("name")
+        );
+        AggregationResults<SearchChannelResponse> results = template.aggregate(aggregation, Channel.COLLECTION_NAME, SearchChannelResponse.class);
+        return results.getMappedResults();
+    }
+
+    private ProjectionOperation getProjectSearchChannelResponse(String... key) {
+        return Aggregation.project()
+                .and("_id").as("channelId")
+                .and(key[0]).as("channelName");
     }
 
     private void updateChannel(Update updateQuery, String channelId) {
