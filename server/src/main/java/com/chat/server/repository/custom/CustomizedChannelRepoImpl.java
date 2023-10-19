@@ -21,6 +21,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -128,7 +129,7 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                 Aggregation.unwind("userInfo"),
                 Aggregation.match(Criteria.where("userInfo._id").ne(userOId)
                         .andOperator(Criteria.where("userInfo.username").regex(keyword))),
-                getProjectSearchChannelResponse("userInfo.username")
+                getProjectSearchChannelResponse("userInfo.username", "type", "userInfo.isOnline")
         );
         AggregationResults<SearchChannelResponse> results = template.aggregate(aggregation, Channel.COLLECTION_NAME, SearchChannelResponse.class);
         return results.getMappedResults();
@@ -140,16 +141,20 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         Criteria.where("users").is(userOId),
                         Criteria.where("name").regex(keyword)
                 )),
-                getProjectSearchChannelResponse("name")
+                getProjectSearchChannelResponse("name", "type", "isOnlineAlwaysTrue")
         );
         AggregationResults<SearchChannelResponse> results = template.aggregate(aggregation, Channel.COLLECTION_NAME, SearchChannelResponse.class);
-        return results.getMappedResults();
+        return results.getMappedResults().stream()
+                .peek(res -> res.setOnline(true))
+                .collect(Collectors.toList());
     }
 
     private ProjectionOperation getProjectSearchChannelResponse(String... key) {
         return Aggregation.project()
                 .and("_id").as("channelId")
-                .and(key[0]).as("channelName");
+                .and(key[0]).as("channelName")
+                .and(key[1]).as("type")
+                .and(key[2]).as("isOnline");
     }
 
     private void updateChannel(Update updateQuery, String channelId) {
