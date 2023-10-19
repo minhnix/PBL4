@@ -3,22 +3,15 @@ package com.chat.server.service.impl;
 
 import com.chat.server.exception.BadRequestException;
 import com.chat.server.model.Channel;
-import com.chat.server.model.User;
 import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.payload.response.ChannelMessage;
-import com.chat.server.payload.response.PagedResponse;
 import com.chat.server.payload.response.SearchChannelResponse;
 import com.chat.server.repository.ChannelRepo;
 import com.chat.server.repository.UserRepo;
 import com.chat.server.service.ChannelService;
-import com.chat.server.util.ValidatePageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

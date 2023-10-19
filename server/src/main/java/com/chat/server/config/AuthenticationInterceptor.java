@@ -15,8 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.security.Principal;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor

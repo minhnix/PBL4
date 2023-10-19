@@ -74,19 +74,23 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         .first("sender").as("sender")
                         .first("createdAt").as("createdAt"),
                 Aggregation.lookup(User.COLLECTION_NAME, "_id", "channels", "userInfos")
-//                Aggregation.addFields().addField("userInfo")
-//                        .withValue(ArrayOperators.ArrayElemAt.arrayOf("userInfo").elementAt(0))
-//                        .build(),
-//                Aggregation.project()
-//                        .and("latestMessage").as("latestMessage")
-//                        .and("createdAt").as("createdAt")
-//                        .and("sender").as("sender")
-//                        .and("_id").as("channelId")
-//                        .and("userInfo.isOnline").as("isOnline")
-                // TODO: impl isOnline
         );
         AggregationResults<ChannelMessage> results = template.aggregate(aggregation, Message.COLLECTION_NAME, ChannelMessage.class);
         List<ChannelMessage> channelMessages = results.getMappedResults();
+        setOnlineAndChannelName(channelMessages, channels, userId);
+        return channelMessages;
+    }
+
+    @Override
+    public List<SearchChannelResponse> findByKeyword(String keyword, String userId) {
+        ObjectId userOId = new ObjectId(userId);
+        List<SearchChannelResponse> responses = new ArrayList<>();
+        responses.addAll(findByKeywordChannelPM(keyword, userOId));
+        responses.addAll(findByKeywordChannelGroup(keyword, userOId));
+        return responses;
+    }
+
+    private void setOnlineAndChannelName(List<ChannelMessage> channelMessages, List<Channel> channels, String userId) {
         for (var channelMessage : channelMessages) {
             channelMessage.setOnline(
                     channelMessage.getUserInfos().stream().anyMatch(user -> {
@@ -94,7 +98,6 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         return user.getIsOnline();
                     })
             );
-
             for (var channel : channels) {
                 if (channel.getId().equals(channelMessage.get_id())) {
                     if (channel.getType().equals("group"))
@@ -109,16 +112,6 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                 }
             }
         }
-        return channelMessages;
-    }
-
-    @Override
-    public List<SearchChannelResponse> findByKeyword(String keyword, String userId) {
-        ObjectId userOId = new ObjectId(userId);
-        List<SearchChannelResponse> responses = new ArrayList<>();
-        responses.addAll(findByKeywordChannelPM(keyword, userOId));
-        responses.addAll(findByKeywordChannelGroup(keyword, userOId));
-        return responses;
     }
 
     private List<SearchChannelResponse> findByKeywordChannelPM(String keyword, ObjectId userOId) {

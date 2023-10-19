@@ -7,15 +7,10 @@ import com.chat.server.security.CurrentUser;
 import com.chat.server.security.CustomUserDetails;
 import com.chat.server.service.MessageService;
 import com.chat.server.util.CursorPageable;
-import com.chat.server.util.TimeConvert;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.Instant;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,7 +32,7 @@ public class MessengerController {
         CursorPageable<ObjectId> pageable = new CursorPageable<>();
         pageable.setSize(size);
         pageable.setColumnName("id");
-        pageable.setNextCursor(StringUtils.hasText(next) ? new ObjectId(next): null );
+        pageable.setNextCursor(StringUtils.hasText(next) ? new ObjectId(next) : null);
         pageable.setPreviousCursor(StringUtils.hasText(pre) ? new ObjectId(pre) : null);
         return messageService.findAllMessageByChannel(channelId, pageable, user);
     }
