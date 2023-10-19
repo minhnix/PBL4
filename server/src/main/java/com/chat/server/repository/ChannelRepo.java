@@ -14,5 +14,4 @@ import java.util.Optional;
 
 public interface ChannelRepo extends MongoRepository<Channel, String>, CustomizedChannelRepo {
     Optional<Channel> findById(String id);
-    List<Channel> findByNameContaining(String keyword);
 }

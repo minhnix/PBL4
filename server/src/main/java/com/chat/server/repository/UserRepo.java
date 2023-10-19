@@ -27,4 +27,5 @@ public interface UserRepo extends MongoRepository<User, String>, CustomizedUserR
 
     Optional<User> findByUsernameOrEmail(String usernameOrEmail, String usernameOrEmail1);
     List<User> findByUsernameContaining(String keyword);
+    List<User> findByIdIsNotAndUsernameContaining(String id, String keyword);
 }
