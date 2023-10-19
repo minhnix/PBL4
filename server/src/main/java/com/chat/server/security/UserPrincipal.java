@@ -9,6 +9,7 @@ public class UserPrincipal implements Principal {
     private UserPrincipal(String id) {
         this.id = id;
     }
+
     public UserPrincipal(String id, String username) {
         this(id);
         this.username = username;

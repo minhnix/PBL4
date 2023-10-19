@@ -2,28 +2,21 @@ package com.chat.server.controller;
 
 import com.chat.server.exception.ForbiddenException;
 import com.chat.server.model.Channel;
-import com.chat.server.model.User;
 import com.chat.server.payload.request.ChannelRequest;
-import com.chat.server.payload.request.SignUpRequest;
 import com.chat.server.payload.request.UserHelper;
 import com.chat.server.payload.response.ApiResponse;
 import com.chat.server.payload.response.ChannelInfo;
-import com.chat.server.payload.response.PagedResponse;
 import com.chat.server.security.CurrentUser;
 import com.chat.server.security.CustomUserDetails;
 import com.chat.server.service.ChannelService;
-import com.chat.server.service.impl.ChannelServiceImpl;
-import com.chat.server.util.AppConstants;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/channels")

@@ -7,6 +7,7 @@ import com.chat.server.model.User;
 import com.chat.server.payload.request.SignUpRequest;
 import com.chat.server.payload.response.PagedResponse;
 import com.chat.server.repository.UserRepo;
+import com.chat.server.security.CustomUserDetails;
 import com.chat.server.service.UserService;
 import com.chat.server.util.ValidatePageable;
 import lombok.RequiredArgsConstructor;
@@ -76,7 +77,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> findByKeyword(String keyword) {
-        return userRepo.findByUsernameContaining(keyword);
+    public List<User> findByKeyword(String keyword, CustomUserDetails user) {
+        if (user == null)
+            return userRepo.findByUsernameContaining(keyword);
+        else
+            return userRepo.findByIdIsNotAndUsernameContaining(user.getId(), keyword);
     }
 }

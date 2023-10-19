@@ -8,4 +8,6 @@ import lombok.Setter;
 public class SearchChannelResponse {
     private String channelId;
     private String channelName;
+    private String type;
+    private boolean isOnline;
 }

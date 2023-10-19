@@ -3,7 +3,6 @@ package com.chat.server.security;
 
 import com.chat.server.model.User;
 import jakarta.validation.Valid;
-import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

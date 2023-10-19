@@ -21,6 +21,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -73,19 +74,23 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         .first("sender").as("sender")
                         .first("createdAt").as("createdAt"),
                 Aggregation.lookup(User.COLLECTION_NAME, "_id", "channels", "userInfos")
-//                Aggregation.addFields().addField("userInfo")
-//                        .withValue(ArrayOperators.ArrayElemAt.arrayOf("userInfo").elementAt(0))
-//                        .build(),
-//                Aggregation.project()
-//                        .and("latestMessage").as("latestMessage")
-//                        .and("createdAt").as("createdAt")
-//                        .and("sender").as("sender")
-//                        .and("_id").as("channelId")
-//                        .and("userInfo.isOnline").as("isOnline")
-                // TODO: impl isOnline
         );
         AggregationResults<ChannelMessage> results = template.aggregate(aggregation, Message.COLLECTION_NAME, ChannelMessage.class);
         List<ChannelMessage> channelMessages = results.getMappedResults();
+        setOnlineAndChannelName(channelMessages, channels, userId);
+        return channelMessages;
+    }
+
+    @Override
+    public List<SearchChannelResponse> findByKeyword(String keyword, String userId) {
+        ObjectId userOId = new ObjectId(userId);
+        List<SearchChannelResponse> responses = new ArrayList<>();
+        responses.addAll(findByKeywordChannelPM(keyword, userOId));
+        responses.addAll(findByKeywordChannelGroup(keyword, userOId));
+        return responses;
+    }
+
+    private void setOnlineAndChannelName(List<ChannelMessage> channelMessages, List<Channel> channels, String userId) {
         for (var channelMessage : channelMessages) {
             channelMessage.setOnline(
                     channelMessage.getUserInfos().stream().anyMatch(user -> {
@@ -93,7 +98,6 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         return user.getIsOnline();
                     })
             );
-
             for (var channel : channels) {
                 if (channel.getId().equals(channelMessage.get_id())) {
                     if (channel.getType().equals("group"))
@@ -108,16 +112,6 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                 }
             }
         }
-        return channelMessages;
-    }
-
-    @Override
-    public List<SearchChannelResponse> findByKeyword(String keyword, String userId) {
-        ObjectId userOId = new ObjectId(userId);
-        List<SearchChannelResponse> responses = new ArrayList<>();
-        responses.addAll(findByKeywordChannelPM(keyword, userOId));
-        responses.addAll(findByKeywordChannelGroup(keyword, userOId));
-        return responses;
     }
 
     private List<SearchChannelResponse> findByKeywordChannelPM(String keyword, ObjectId userOId) {
@@ -128,7 +122,7 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                 Aggregation.unwind("userInfo"),
                 Aggregation.match(Criteria.where("userInfo._id").ne(userOId)
                         .andOperator(Criteria.where("userInfo.username").regex(keyword))),
-                getProjectSearchChannelResponse("userInfo.username")
+                getProjectSearchChannelResponse("userInfo.username", "type", "userInfo.isOnline")
         );
         AggregationResults<SearchChannelResponse> results = template.aggregate(aggregation, Channel.COLLECTION_NAME, SearchChannelResponse.class);
         return results.getMappedResults();
@@ -140,16 +134,20 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         Criteria.where("users").is(userOId),
                         Criteria.where("name").regex(keyword)
                 )),
-                getProjectSearchChannelResponse("name")
+                getProjectSearchChannelResponse("name", "type", "isOnlineAlwaysTrue")
         );
         AggregationResults<SearchChannelResponse> results = template.aggregate(aggregation, Channel.COLLECTION_NAME, SearchChannelResponse.class);
-        return results.getMappedResults();
+        return results.getMappedResults().stream()
+                .peek(res -> res.setOnline(true))
+                .collect(Collectors.toList());
     }
 
     private ProjectionOperation getProjectSearchChannelResponse(String... key) {
         return Aggregation.project()
                 .and("_id").as("channelId")
-                .and(key[0]).as("channelName");
+                .and(key[0]).as("channelName")
+                .and(key[1]).as("type")
+                .and(key[2]).as("isOnline");
     }
 
     private void updateChannel(Update updateQuery, String channelId) {
