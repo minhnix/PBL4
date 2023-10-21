@@ -9,5 +9,6 @@ public class SearchChannelResponse {
     private String channelId;
     private String channelName;
     private String type;
-    private boolean isOnline;
+    private boolean isOnline = true;
+    private String userId;
 }

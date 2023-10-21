@@ -122,7 +122,9 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                 Aggregation.unwind("userInfo"),
                 Aggregation.match(Criteria.where("userInfo._id").ne(userOId)
                         .andOperator(Criteria.where("userInfo.username").regex(keyword))),
-                getProjectSearchChannelResponse("userInfo.username", "type", "userInfo.isOnline")
+                getProjectSearchChannelResponse("userInfo.username", "type")
+                        .and("userInfo.isOnline").as("isOnline")
+                        .and("userInfo._id").as("userId")
         );
         AggregationResults<SearchChannelResponse> results = template.aggregate(aggregation, Channel.COLLECTION_NAME, SearchChannelResponse.class);
         return results.getMappedResults();
@@ -134,7 +136,7 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         Criteria.where("users").is(userOId),
                         Criteria.where("name").regex(keyword)
                 )),
-                getProjectSearchChannelResponse("name", "type", "isOnlineAlwaysTrue")
+                getProjectSearchChannelResponse("name", "type")
         );
         AggregationResults<SearchChannelResponse> results = template.aggregate(aggregation, Channel.COLLECTION_NAME, SearchChannelResponse.class);
         return results.getMappedResults().stream()
@@ -146,8 +148,7 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
         return Aggregation.project()
                 .and("_id").as("channelId")
                 .and(key[0]).as("channelName")
-                .and(key[1]).as("type")
-                .and(key[2]).as("isOnline");
+                .and(key[1]).as("type");
     }
 
     private void updateChannel(Update updateQuery, String channelId) {
