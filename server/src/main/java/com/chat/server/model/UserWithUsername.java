@@ -1,16 +1,13 @@
-package com.chat.server.payload.response;
-
+package com.chat.server.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @AllArgsConstructor
-public class UserSummary {
-    private String id;
+public class UserWithUsername {
+    private String userId;
     private String username;
-    private String email;
 }

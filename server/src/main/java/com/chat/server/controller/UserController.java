@@ -3,19 +3,21 @@ package com.chat.server.controller;
 
 import com.chat.server.model.User;
 import com.chat.server.payload.response.PagedResponse;
-import com.chat.server.service.UserService;
+import com.chat.server.security.CurrentUser;
+import com.chat.server.security.CustomUserDetails;
+import com.chat.server.service.impl.UserServiceImpl;
 import com.chat.server.util.AppConstants;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
 @RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserServiceImpl userService;
 
     @GetMapping
     public PagedResponse<User> getAllUsers(
@@ -31,5 +33,13 @@ public class UserController {
     @GetMapping("/{username}")
     public User getOne(@PathVariable("username") String username) {
         return userService.getOneUser(username);
+    }
+
+    @GetMapping("/search")
+    public List<User> findByKeyword(
+            @RequestParam(value = "q", defaultValue = "") String keyword,
+            @CurrentUser CustomUserDetails user
+    ) {
+        return userService.findByKeyword(keyword, user);
     }
 }
