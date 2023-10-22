@@ -1,19 +1,36 @@
-export const formatMessageTime = (timestamp) => {
-  // Calculate time difference
-  const currentTime = new Date().getTime();
-  const timeDifference = currentTime - timestamp;
+export const calculateTimeDifference = (epochTimestamp) => {
+  // Chuyển epoch timestamp thành milliseconds (đơn vị mili giây)
+  const epochMillis = epochTimestamp * 1000;
 
-  // Format time based on the difference
-  if (timeDifference < 60000) {
-    return "Now";
-  } else if (timeDifference < 3600000) {
-    const minutes = Math.floor(timeDifference / 60000);
-    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-  } else if (timeDifference < 86400000) {
-    const hours = Math.floor(timeDifference / 3600000);
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  // Tạo một đối tượng Date từ epoch milliseconds
+  const convertedDate = new Date(epochMillis);
+
+  // Lấy thời gian hiện tại (milliseconds từ epoch)
+  const currentTime = Date.now();
+
+  // Tính thời gian chênh lệch
+  const timeDifference = currentTime - epochMillis;
+
+  // Chuyển đổi thời gian chênh lệch thành ngày, giờ, phút, giây
+  const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+  const hoursDifference = Math.floor(
+    (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  );
+  const minutesDifference = Math.floor(
+    (timeDifference % (1000 * 60 * 60)) / (1000 * 60)
+  );
+
+  if (daysDifference > 0) {
+    return `${daysDifference} d ago`;
+  } else if (hoursDifference > 0) {
+    return `${hoursDifference} h ago`;
+  } else if (minutesDifference > 1) {
+    return `${minutesDifference} m ago`;
   } else {
-    const days = Math.floor(timeDifference / 86400000);
-    return `${days} day${days > 1 ? "s" : ""} ago`;
+    return "now";
   }
+};
+
+export const formatMessageTime = (timeObject) => {
+  const { daysDifference, hoursDifference, minutesDifference } = timeObject;
 };

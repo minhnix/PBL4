@@ -1,6 +1,18 @@
 import React from "react";
 import { MdOutlineMoreHoriz } from "react-icons/md";
-const ChatItem = ({ isDarkTheme, name, messageTime, isOnline, onClick }) => {
+import { calculateTimeDifference } from "../utils/formatTime";
+import Avatar from "./Avatar";
+
+const ChatItem = ({
+  isDarkTheme,
+  name,
+  messageTime,
+  isOnline,
+  latestMessage,
+  sender,
+  userLoggedIn,
+  onClick,
+}) => {
   return (
     <>
       <div
@@ -12,8 +24,8 @@ const ChatItem = ({ isDarkTheme, name, messageTime, isOnline, onClick }) => {
         onClick={onClick}
       >
         <div className="flex gap-2">
-          <div className="relative py-2">
-            <span className="w-11 h-11 bg-red-500 rounded-full block"></span>
+          <div className="relative py-2 flex">
+            <Avatar name={name} size={11} />
             {isOnline && (
               <span className="w-2 h-2 bg-green-500 rounded-full block absolute right-1 bottom-2"></span>
             )}
@@ -21,12 +33,14 @@ const ChatItem = ({ isDarkTheme, name, messageTime, isOnline, onClick }) => {
           <div className="flex flex-col justify-between py-2">
             <span className="font-semibold dark:text-white">{name}</span>
             <span className="text-gray-500 dark:text-white text-[12px]">
-              You : Nix iu Vinh - {messageTime}
+              {userLoggedIn.username != sender.username
+                ? sender.username
+                : "You : " + latestMessage}{" "}
+              - {calculateTimeDifference(messageTime)}
             </span>
           </div>
         </div>
         <div className="">
-          {" "}
           <MdOutlineMoreHoriz
             size={20}
             className={`cursor-pointer dark:text-white`}

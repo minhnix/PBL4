@@ -88,7 +88,6 @@ export const SignUp = () => {
       firstname: "",
       lastname: "",
     };
-    console.log("🚀 ~ file: SignIn.jsx:78 ~ handleSignUp ~ reqBody:", reqBody);
 
     if (
       regUser.email.trim() !== "" &&
@@ -111,8 +110,6 @@ export const SignUp = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-
-    console.log("🚀 ~ file: SignIn.jsx:25 ~ handleSignIn ~ err:", loginUser);
     if (loginUser.username.trim() !== "" && loginUser.password.trim() !== "") {
       try {
         const res = await login(loginUser.username, loginUser.password);
@@ -166,10 +163,6 @@ export const SignUp = () => {
       }
       handleSignIn(e);
     }
-
-    // if (isSignUp) console.log(regUser);
-    // else console.log(loginUser);
-    // console.log(isEmptyEmail, isEmptyPassword, isEmptyUsername);
   };
 
   const handlerReset = () => {
