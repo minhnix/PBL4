@@ -1,5 +1,6 @@
 package com.chat.server.controller;
 
+import com.chat.server.model.Message;
 import com.chat.server.model.UserWithUsername;
 import com.chat.server.payload.request.ChatMessage;
 import com.chat.server.security.UserPrincipal;
@@ -28,12 +29,12 @@ public class ChatController {
         ));
         chatMessage.setType(ChatMessage.Type.MESSAGE);
 
-        messageService.saveMessage(chatMessage);
-        template.convertAndSendToUser(chatMessage.getSendTo(), "/pm", chatMessage);
+        Message message = messageService.saveMessage(chatMessage);
+        template.convertAndSendToUser(chatMessage.getSendTo(), "/pm", message);
     }
 
     @MessageMapping("/chat/group/{groupId}")
-    public void handleGroupMessage(@DestinationVariable String groupId, ChatMessage chatMessage, UserPrincipal principal) {
+    public void handleGroupMessage(@DestinationVariable String groupId,@Payload ChatMessage chatMessage, UserPrincipal principal) {
         log.info("client send to group: {}", chatMessage);
         chatMessage.setSender(new UserWithUsername(
                 principal.getName(),
@@ -41,8 +42,8 @@ public class ChatController {
         ));
         chatMessage.setType(ChatMessage.Type.MESSAGE);
 
-        messageService.saveMessage(chatMessage);
-        template.convertAndSend("/topic/group/" + groupId, chatMessage);
+        Message message = messageService.saveMessage(chatMessage);
+        template.convertAndSend("/topic/group/" + groupId, message);
     }
 
 }

@@ -14,13 +14,11 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 @EnableWebSocketMessageBroker
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     private final AuthenticationInterceptor authenticationInterceptor;
-    private final GroupInterceptor groupInterceptor;
     @Value("${websocket.allowed.origin}")
     private String[] allowedOrigin;
 
-    public WebsocketConfig(AuthenticationInterceptor authenticationInterceptor, GroupInterceptor groupInterceptor) {
+    public WebsocketConfig(AuthenticationInterceptor authenticationInterceptor) {
         this.authenticationInterceptor = authenticationInterceptor;
-        this.groupInterceptor = groupInterceptor;
     }
 
     @Bean
@@ -34,19 +32,18 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+                .setAllowedOriginPatterns("*");
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.setApplicationDestinationPrefixes("/app")
                 .setUserDestinationPrefix("/user")
-                .enableSimpleBroker("/topic", "/queue");
+                .enableSimpleBroker("/topic", "/user");
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authenticationInterceptor, groupInterceptor);
+        registration.interceptors(authenticationInterceptor);
     }
 }

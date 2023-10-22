@@ -1,9 +1,9 @@
 package com.chat.server.security;
 
 
-import com.chat.server.model.User;
 import com.chat.server.payload.response.UserSummary;
 import com.chat.server.repository.UserRepo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +25,6 @@ public class JwtTokenProvider {
     @Value("${app.jwtExpirationInMs}")
     private long jwtExpirationInMs;
 
-    private UserRepo userRepo;
-
     public String generateToken(Authentication authentication) {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -34,7 +32,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
-        Map<String, Object> claims = new HashMap<>();
+        Map<String, UserSummary> claims = new HashMap<>();
         UserSummary userSummary = new UserSummary(customUserDetails.getId(), customUserDetails.getUsername(), customUserDetails.getEmail());
         claims.put("user", userSummary);
         return Jwts.builder()
@@ -55,12 +53,14 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
-    public User getUserFromJwt(String token) {
-        Claims claims = Jwts.parser()
+    public UserSummary getUserFromJwt(String token) {
+        final ObjectMapper mapper = new ObjectMapper();
+        Object user = Jwts.parser()
                 .setSigningKey(jwtSecret)
                 .parseClaimsJws(token)
-                .getBody();
-        return (User) claims.get("user");
+                .getBody()
+                .get("user");
+        return mapper.convertValue(user, UserSummary.class);
     }
 
     public boolean validateToken(String authToken) {
