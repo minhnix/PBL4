@@ -20,10 +20,6 @@ const MessageProvider = (props) => {
         },
       });
       setData(res.data);
-      console.log(
-        "🚀 ~ file: message.context.jsx:23 ~ fetchData ~ res:",
-        res.data
-      );
     } catch (err) {
       console.log(
         "🚀 ~ file: HomePage.jsx:95 ~ handleGetAllChannels ~ err:",
@@ -49,10 +45,6 @@ const MessageProvider = (props) => {
       };
       data.unshift(targetUser);
       setData([...data]);
-      console.log(
-        "🚀 ~ file: message.context.jsx:51 ~ MessageProvider ~ data:",
-        [...data]
-      );
     }
   };
 

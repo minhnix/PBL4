@@ -23,7 +23,7 @@ const Avatar = (props) => {
   var index = Math.abs(hash % colors.length);
   return (
     <div
-      className={`h-${props.size} w-${props.size} rounded-full relative`}
+      className={`h-10 w-10 rounded-full relative `}
       style={{
         background: colors[index],
       }}

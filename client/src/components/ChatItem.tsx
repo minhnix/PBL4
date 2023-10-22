@@ -25,7 +25,7 @@ const ChatItem = ({
       >
         <div className="flex gap-2">
           <div className="relative py-2 flex">
-            <Avatar name={name} size={11} />
+            <Avatar name={name} size={10} />
             {isOnline && (
               <span className="w-2 h-2 bg-green-500 rounded-full block absolute right-1 bottom-2"></span>
             )}
@@ -35,7 +35,7 @@ const ChatItem = ({
             <span className="text-gray-500 dark:text-white text-[12px]">
               {userLoggedIn.username != sender.username
                 ? sender.username
-                : "You : " + latestMessage}{" "}
+                : "You : " + latestMessage}
               - {calculateTimeDifference(messageTime)}
             </span>
           </div>

@@ -11,7 +11,6 @@ import { RiSendPlaneFill } from "react-icons/ri";
 import ChatInfo from "../components/ChatInfo";
 import ChatSearchItem from "../components/ChatSearchItem";
 import axios from "axios";
-import jwtDecode from "jwt-decode";
 import { calculateTimeDifference } from "../utils/formatTime";
 import Avatar from "../components/Avatar";
 import { useMessage } from "../context/message.context";
@@ -298,7 +297,7 @@ const HomePage = () => {
             <div
               className={`flex flex-col w-[60px] h-full items-center justify-between ${
                 isDarkTheme ? "float-neumorphism-dark" : "float-neumorphism"
-              }  rounded-lg py-3 `}
+              }  rounded-lg py-3`}
             >
               <Avatar name={userLoggedIn.username} size={10} />
               <div className="px-1 py-1 cursor-pointer relative">

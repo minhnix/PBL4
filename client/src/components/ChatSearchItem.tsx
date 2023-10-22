@@ -1,5 +1,4 @@
 import React from "react";
-// import { getAvatarColor } from "../utils/getAvatarColor";
 import Avatar from "./Avatar.jsx";
 
 const ChatSearchItem = ({ isDarkTheme, channelName, channelId, onClick }) => {
@@ -15,7 +14,7 @@ const ChatSearchItem = ({ isDarkTheme, channelName, channelId, onClick }) => {
       >
         <div className="flex gap-2">
           <div className="flex justify-between py-2 items-center gap-2 relative">
-            <Avatar name={channelName} size={11} />
+            <Avatar name={channelName} size={10} />
             <span className="font-semibold dark:text-white">{channelName}</span>
           </div>
         </div>

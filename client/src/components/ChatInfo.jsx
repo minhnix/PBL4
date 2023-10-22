@@ -10,7 +10,7 @@ const ChatInfo = ({ idChannel, isOnline, isDarkTheme, name, messageTime }) => {
     >
       <div className="flex gap-2">
         <div className="relative py-2">
-          <Avatar name={name} size={11} />
+          <Avatar name={name} size={10} />
           {isOnline && (
             <span className="w-2 h-2 bg-green-500 rounded-full block absolute right-1 bottom-2"></span>
           )}
