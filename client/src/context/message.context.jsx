@@ -10,7 +10,7 @@ const MessageProvider = (props) => {
   const [data, setData] = useState([]);
   const token = localStorage.getItem("token");
   const userLoggedIn = token ? jwtDecode(token).user : null;
-  const [user, setUser] = useState();
+  const [newMessage, setNewMessage] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -33,11 +33,7 @@ const MessageProvider = (props) => {
     }
   };
 
-  const reArrangeUsersOnMessageSend = (
-    targetChannelId,
-    newMessage,
-    renderMessages
-  ) => {
+  const reArrangeUsersOnMessageSend = (targetChannelId, newMessage) => {
     const targetUserIndex = data.findIndex(
       (user) => user.channelId == targetChannelId
     );
@@ -50,6 +46,8 @@ const MessageProvider = (props) => {
       };
       data.unshift(targetUser);
       setData([...data]);
+    } else {
+      fetchData();
     }
   };
 
@@ -59,6 +57,8 @@ const MessageProvider = (props) => {
     fetchData,
     data,
     reArrangeUsersOnMessageSend,
+    newMessage,
+    setNewMessage,
   };
 
   return (

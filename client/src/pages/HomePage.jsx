@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth.context";
 import { BiMenu } from "react-icons/bi";
@@ -14,12 +14,22 @@ import axios from "axios";
 import { calculateTimeDifference } from "../utils/formatTime";
 import Avatar from "../components/Avatar";
 import { useMessage } from "../context/message.context";
+import { StompContext } from "usestomp-hook/lib/Provider";
+import { useStomp } from "usestomp-hook/lib";
 
 const HomePage = () => {
   const { logout } = useAuth();
   const token = localStorage.getItem("token");
-  const { data, fetchData, reArrangeUsersOnMessageSend, userLoggedIn } =
-    useMessage();
+  const client = useContext(StompContext).stompClient;
+  const { send } = useStomp();
+  const {
+    data,
+    fetchData,
+    reArrangeUsersOnMessageSend,
+    userLoggedIn,
+    newMessage,
+    setNewMessage,
+  } = useMessage();
   const navigate = useNavigate();
   const chatContentRef = useRef(null);
   const [hasFetchedData, setHasFetchedData] = useState(false);
@@ -39,7 +49,9 @@ const HomePage = () => {
     isOnline: true,
     name: "",
     messageTime: "",
+    userId: null,
   });
+  console.log("🚀 ~ HomePage ~ currentChannel:", currentChannel);
   //all channels haven't messages
   const [allChannels, setAllChannels] = useState([]);
   //all users
@@ -112,7 +124,7 @@ const HomePage = () => {
           },
         }
       );
-      setRenderMessages(handerTransformMessage(res.data.data));
+      setRenderMessages(res.data.data);
       setPreCursor(res.data.previousCursor);
       setNextCursor(res.data.nextCursor);
     } catch (err) {
@@ -187,16 +199,6 @@ const HomePage = () => {
     }
   };
 
-  const handerTransformMessage = (messages) => {
-    return messages.map((message) => {
-      const position = message.sender === userLoggedIn.id ? "right" : "left";
-      return {
-        ...message,
-        position,
-      };
-    });
-  };
-
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
   };
@@ -205,14 +207,17 @@ const HomePage = () => {
     if (inputValue.trim() !== "") {
       const newMessage = {
         position: "right",
-        type: "text",
+        type: "MESSAGE",
         content: inputValue,
         sender: {
           userId: userLoggedIn?.id,
           username: userLoggedIn?.username,
         },
         date: Date.now(),
+        sendTo: currentChannel.userId ? currentChannel.userId : null,
+        channelId: currentChannel.id,
       };
+      console.log("🚀 ~ handleSendMessage ~ newMessage:", newMessage);
       setRenderMessages([newMessage, ...renderMessages]);
       setInputValue("");
       inputRef.current.value = "";
@@ -222,21 +227,33 @@ const HomePage = () => {
         ...renderMessages,
       ]);
 
-      // TODO: Handle send ws
+      if (currentChannel.userId) {
+        send("/app/chat/pm", newMessage, {});
+      } else {
+        send(`/app/chat/group/${currentChannel.id}`, newMessage, {});
+      }
     }
   };
 
-  const handleChatItemClick = (isOnline, name, messageTime, idChannel) => {
+  const handleChatItemClick = (
+    isOnline,
+    name,
+    messageTime,
+    idChannel,
+    userId
+  ) => {
     setCurrentChannel({
       id: idChannel,
       name: name,
       isOnline: isOnline,
       messageTime: messageTime,
+      userId,
     });
 
     handleGetCurrentChannelMessages({
       id: idChannel,
       preCursor: "",
+      userId,
     });
   };
 
@@ -254,7 +271,13 @@ const HomePage = () => {
 
   const handleResetData = () => {
     setRenderMessages([]);
-    setCurrentChannel({ id: "", isOnline: false, name: "", messageTime: "" });
+    setCurrentChannel({
+      id: "",
+      isOnline: false,
+      name: "",
+      messageTime: "",
+      userId: null,
+    });
   };
 
   const nav = useNavigate();
@@ -287,6 +310,74 @@ const HomePage = () => {
       chatContentDiv.removeEventListener("scroll", handleScroll);
     };
   }, [handleGetOlderMessage]);
+
+  const subscribe = (client, path) => {
+    client.subscribe(
+      path,
+      ({ body }) => {
+        const message = JSON.parse(body);
+        console.log(message);
+        if (
+          message.sendTo != null ||
+          message.sender.userId != userLoggedIn.id
+        ) {
+          // if the message send to group, only get message from another sender
+          setNewMessage(message);
+        }
+      },
+      {
+        Authorization: "Bearer " + token,
+      }
+    );
+  };
+
+  const subscribeUserChatPM = (client) => {
+    const path = `/user/${userLoggedIn.id}/pm`;
+    subscribe(client, path);
+  };
+
+  const getGroupsOfUser = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/v1/channels?type=group`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return res.data;
+    } catch (err) {
+      console.log("🚀 ~ getGroupOfUser ~ err:", err);
+    }
+  };
+
+  const subscribeGroupChat = async (client) => {
+    const groups = await getGroupsOfUser();
+    if (groups == null) return;
+    groups.forEach((group) => {
+      const path = "/topic/group/" + group;
+      subscribe(client, path);
+    });
+  };
+
+  useEffect(() => {
+    client.onConnect = () => {
+      subscribeUserChatPM(client);
+      subscribeGroupChat(client);
+    };
+  }, [client]);
+
+  useEffect(() => {
+    if (newMessage == null) return;
+    if (newMessage.channelId === currentChannel.id) {
+      setRenderMessages((pre) => [newMessage, ...pre]);
+    }
+    reArrangeUsersOnMessageSend(newMessage.channelId, {
+      content: newMessage.content,
+      date: newMessage.createdAt,
+    });
+  }, [newMessage]);
 
   useEffect(() => {
     fetchData();
@@ -403,12 +494,14 @@ const HomePage = () => {
                             isOnline: true,
                             name: item.channelName,
                             messageTime: "",
+                            userId: item.userId,
                           });
                           handleGetCurrentChannelMessages({
                             id: item.channelId,
                             isOnline: true,
                             name: item.channelName,
                             preCursor: "",
+                            userId: item.userId,
                           });
                         }}
                         key={index}
@@ -428,7 +521,8 @@ const HomePage = () => {
                             item.online,
                             item.channelName,
                             item.createdAt,
-                            item.channelId
+                            item.channelId,
+                            item?.userId
                           );
                         }}
                         key={index}
@@ -508,7 +602,10 @@ const HomePage = () => {
                   {currentChannel.name != "" ? (
                     renderMessages?.map((message) =>
                       message.sender.userId != userLoggedIn.id ? (
-                        <div className="flex items-center gap-2 ml-2">
+                        <div
+                          className="flex items-center gap-2 ml-2"
+                          key={message.id}
+                        >
                           {message.sender.userId !== userLoggedIn.id && (
                             <Avatar name={message.sender.username} size={10} />
                           )}
@@ -526,7 +623,7 @@ const HomePage = () => {
                           </p>
                         </div>
                       ) : (
-                        <div className="">
+                        <div className="" key={message.id}>
                           <p
                             className={`relative mr-4 right-chat float-right break-all bg-[#8090CB] text-white float-neumorphism-chatBox px-2 py-2 max-w-sm whitespace-normal rounded flex items-center justify-center text-sm`}
                           >
@@ -632,6 +729,7 @@ const HomePage = () => {
               {searchUserText != "" &&
                 users?.map((item, index) => (
                   <div
+                    key={index}
                     className="bg-red py-2 px-4 w-min flex gap-4 
                 items-center border border-black rounded-full cursor-pointer"
                     onClick={() => {
@@ -648,6 +746,7 @@ const HomePage = () => {
           <div className="flex gap-4 text-sm dark:text-white h-[100px] overflow-auto px-4 border-t-2 border-gray-400 pt-2">
             {listUsers?.map((item, index) => (
               <div
+                key={index}
                 className="bg-red py-2 px-4 w-min flex gap-2 h-8
                 items-center border border-black rounded-full cursor-pointer "
               >
