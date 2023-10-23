@@ -73,7 +73,8 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         .first("createdAt").as("createdAt")
                         .first("sender").as("sender")
                         .first("createdAt").as("createdAt"),
-                Aggregation.lookup(User.COLLECTION_NAME, "_id", "channels", "userInfos")
+                Aggregation.lookup(User.COLLECTION_NAME, "_id", "channels", "userInfos"),
+                Aggregation.sort(Sort.Direction.DESC, "createdAt")
         );
         AggregationResults<ChannelMessage> results = template.aggregate(aggregation, Message.COLLECTION_NAME, ChannelMessage.class);
         List<ChannelMessage> channelMessages = results.getMappedResults();
@@ -104,8 +105,10 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         channelMessage.setChannelName(channel.getName());
                     else {
                         for (var user : channelMessage.getUserInfos()) {
-                            if (!user.getId().equals(userId))
+                            if (!user.getId().equals(userId)) {
+                                channelMessage.setUserId(user.getId());
                                 channelMessage.setChannelName(user.getUsername());
+                            }
                         }
                     }
                     channelMessage.setType(channel.getType());

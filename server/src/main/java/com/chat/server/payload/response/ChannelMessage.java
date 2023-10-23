@@ -23,6 +23,7 @@ public class ChannelMessage {
     private String latestMessage;
     private Instant createdAt;
     private boolean isOnline;
+    private String userId;
     @JsonIgnore
     private List<User> userInfos;
 }

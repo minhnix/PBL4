@@ -17,4 +17,5 @@ public interface ChannelService {
     void removeUserInChannel(String channelId, String userId);
     boolean isUserJoinChannel(String channelId, String userId);
     List<SearchChannelResponse> findByKeyword(String keyword, String userId); //find channel and User
+    List<String> getAllGroupOfUser(String userId);
 }

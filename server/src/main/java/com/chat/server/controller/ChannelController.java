@@ -27,8 +27,10 @@ public class ChannelController {
     public final ChannelService channelService;
 
     @GetMapping({"/", ""})
-    public ResponseEntity<?> getAllChannels(@CurrentUser CustomUserDetails currentUser) {
+    public ResponseEntity<?> getAllChannels(@CurrentUser CustomUserDetails currentUser, @RequestParam(value = "type",  required = false) String type) {
         if (currentUser == null) throw new ForbiddenException("Access Denied");
+        if (type != null && type.equals("group"))
+            return ResponseEntity.ok(channelService.getAllGroupOfUser(currentUser.getId()));
         return ResponseEntity.ok(channelService.findAllChannelByUser(currentUser.getId()));
     }
 
