@@ -17,7 +17,8 @@ import { useMessage } from "../context/message.context";
 
 const HomePage = () => {
   const { logout } = useAuth();
-  const { data, fetchData, reArrangeUsersOnMessageSend, token, userLoggedIn } =
+  const token = localStorage.getItem("token");
+  const { data, fetchData, reArrangeUsersOnMessageSend, userLoggedIn } =
     useMessage();
   const navigate = useNavigate();
   const chatContentRef = useRef(null);
@@ -207,8 +208,8 @@ const HomePage = () => {
         type: "text",
         content: inputValue,
         sender: {
-          userId: userLoggedIn.id,
-          username: userLoggedIn.username,
+          userId: userLoggedIn?.id,
+          username: userLoggedIn?.username,
         },
         date: Date.now(),
       };
@@ -256,8 +257,17 @@ const HomePage = () => {
     setCurrentChannel({ id: "", isOnline: false, name: "", messageTime: "" });
   };
 
+  const nav = useNavigate();
+  useEffect(() => {
+    if (!token) {
+      nav("/signin");
+      return;
+    }
+  }, []);
+
   // scroll to top of message
   useEffect(() => {
+    if (token == null) return;
     const chatContentDiv = chatContentRef.current;
     var count = 0;
     const handleScroll = () => {
@@ -282,6 +292,7 @@ const HomePage = () => {
     fetchData();
   }, []);
 
+  if (token == null) return <div></div>;
   return (
     <>
       <div className={`${isDarkTheme && "dark"}`}>
@@ -299,7 +310,7 @@ const HomePage = () => {
                 isDarkTheme ? "float-neumorphism-dark" : "float-neumorphism"
               }  rounded-lg py-3`}
             >
-              <Avatar name={userLoggedIn.username} size={10} />
+              <Avatar name={userLoggedIn?.username} size={10} />
               <div className="px-1 py-1 cursor-pointer relative">
                 <BiMenu
                   size={24}
@@ -629,7 +640,7 @@ const HomePage = () => {
                       }
                     }}
                   >
-                    {item.username}
+                    {item?.username}
                   </div>
                 ))}
             </div>
@@ -640,7 +651,7 @@ const HomePage = () => {
                 className="bg-red py-2 px-4 w-min flex gap-2 h-8
                 items-center border border-black rounded-full cursor-pointer "
               >
-                {item.username}
+                {item?.username}
                 <div>
                   <AiOutlineClose
                     size={16}
