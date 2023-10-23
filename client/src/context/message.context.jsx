@@ -9,11 +9,16 @@ const MessageContext = createContext();
 const MessageProvider = (props) => {
   const [data, setData] = useState([]);
   const token = localStorage.getItem("token");
-  const userLoggedIn = jwtDecode(token).user;
+  const userLoggedIn = token ? jwtDecode(token).user : null;
   const [user, setUser] = useState();
 
   const fetchData = async () => {
     try {
+      if (!token) {
+        setData([]);
+        return;
+      }
+
       const res = await axios.get(`http://localhost:8080/api/v1/channels`, {
         headers: {
           Authorization: `Bearer ${token}`,
