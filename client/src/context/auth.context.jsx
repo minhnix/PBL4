@@ -7,7 +7,7 @@ import axios from "axios";
 const AuthContext = createContext();
 
 function AuthProvider(props) {
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [token, setToken] = useState(localStorage?.getItem("token") || "");
 
   const [user, setUser] = useState(
     localStorage.getItem("token")

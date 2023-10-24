@@ -66,6 +66,7 @@ export const SignUp = () => {
   };
 
   const handleChange = (e) => {
+    setError("");
     if (isSignUp) {
       setRegUser({
         ...regUser,
@@ -88,7 +89,6 @@ export const SignUp = () => {
       firstname: "",
       lastname: "",
     };
-    console.log("🚀 ~ file: SignIn.jsx:78 ~ handleSignUp ~ reqBody:", reqBody);
 
     if (
       regUser.email.trim() !== "" &&
@@ -111,8 +111,6 @@ export const SignUp = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-
-    console.log("🚀 ~ file: SignIn.jsx:25 ~ handleSignIn ~ err:", loginUser);
     if (loginUser.username.trim() !== "" && loginUser.password.trim() !== "") {
       try {
         const res = await login(loginUser.username, loginUser.password);
@@ -166,10 +164,12 @@ export const SignUp = () => {
       }
       handleSignIn(e);
     }
+  };
 
-    // if (isSignUp) console.log(regUser);
-    // else console.log(loginUser);
-    // console.log(isEmptyEmail, isEmptyPassword, isEmptyUsername);
+  const keyEnterPress = (e) => {
+    if (e.key === "Enter") {
+      handleSubmit(e);
+    }
   };
 
   const handlerReset = () => {
@@ -276,6 +276,7 @@ export const SignUp = () => {
                     placeholder="Username"
                     name="username"
                     onChange={handleChange}
+                    onKeyPress={keyEnterPress}
                     autoComplete="off"
                   />
                   {isSignUp && (
@@ -308,6 +309,7 @@ export const SignUp = () => {
                     placeholder="Password"
                     name="password"
                     onChange={handleChange}
+                    onKeyPress={keyEnterPress}
                   />
 
                   <span
