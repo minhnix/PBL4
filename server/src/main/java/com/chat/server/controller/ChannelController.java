@@ -27,7 +27,7 @@ public class ChannelController {
     public final ChannelService channelService;
 
     @GetMapping({"/", ""})
-    public ResponseEntity<?> getAllChannels(@CurrentUser CustomUserDetails currentUser, @RequestParam(value = "type",  required = false) String type) {
+    public ResponseEntity<?> getAllChannels(@CurrentUser CustomUserDetails currentUser, @RequestParam(value = "type", required = false) String type) {
         if (currentUser == null) throw new ForbiddenException("Access Denied");
         if (type != null && type.equals("group"))
             return ResponseEntity.ok(channelService.getAllGroupOfUser(currentUser.getId()));
@@ -53,8 +53,10 @@ public class ChannelController {
     }
 
     @GetMapping("/{channelId}")
-    public ResponseEntity<ChannelInfo> findChannel(@PathVariable("channelId") String channelId) {
-        return ResponseEntity.ok(channelService.findChannel(channelId));
+    public ResponseEntity<ChannelInfo> findChannel(@PathVariable("channelId") String channelId,
+                                                   @CurrentUser CustomUserDetails user
+    ) {
+        return ResponseEntity.ok(channelService.findChannel(channelId, user.getId()));
     }
 
     @PostMapping("/addUser")

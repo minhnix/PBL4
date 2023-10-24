@@ -11,7 +11,7 @@ import java.util.Set;
 
 public interface ChannelService {
     Channel createChannel(String type, String name, Set<ObjectId> userIds);
-    ChannelInfo findChannel(String channelId);
+    ChannelInfo findChannel(String channelId, String userId);
     List<ChannelMessage> findAllChannelByUser(String userId);
     void addUserToChannel(String channelId, String userId);
     void removeUserInChannel(String channelId, String userId);

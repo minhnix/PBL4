@@ -95,6 +95,7 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
         for (var channelMessage : channelMessages) {
             channelMessage.setOnline(
                     channelMessage.getUserInfos().stream().anyMatch(user -> {
+                        if (user.getId().equals(userId)) return false;
                         if (user.getIsOnline() == null) return false;
                         return user.getIsOnline();
                     })

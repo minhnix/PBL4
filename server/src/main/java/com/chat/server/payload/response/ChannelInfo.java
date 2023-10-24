@@ -13,4 +13,5 @@ public class ChannelInfo {
     private String name;
     private String type;
     private Set<User> users;
+    private boolean isOnline;
 }

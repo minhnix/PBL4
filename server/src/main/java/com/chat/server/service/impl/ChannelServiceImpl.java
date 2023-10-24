@@ -2,6 +2,7 @@ package com.chat.server.service.impl;
 
 
 import com.chat.server.exception.BadRequestException;
+import com.chat.server.exception.ForbiddenException;
 import com.chat.server.model.Channel;
 import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.payload.response.ChannelMessage;
@@ -43,10 +44,27 @@ public class ChannelServiceImpl implements ChannelService {
         return channel1;
     }
 
-    public ChannelInfo findChannel(String channelId) {
-        //TODO: authentication
-        return channelRepo.findDetailById(channelId).orElseThrow(() -> new BadRequestException("Channel " + channelId + " not found"));
+    public ChannelInfo findChannel(String channelId, String userId) {
+        ChannelInfo channelInfo = channelRepo.findDetailById(channelId).orElseThrow(() -> new BadRequestException("Channel " + channelId + " not found"));
+        if (channelInfo.getUsers().stream().noneMatch(user -> user.getId().equals(userId)))
+            throw new ForbiddenException("Access denied");
+        channelInfo.setOnline(
+                channelInfo.getUsers().stream().anyMatch(user -> {
+                    if (user.getId().equals(userId)) return false;
+                    if (user.getIsOnline() == null) return false;
+                    return user.getIsOnline();
+                })
+        );
+        if (channelInfo.getType().equals("group")) return channelInfo;
+
+        for (var user : channelInfo.getUsers()) {
+            if (!user.getId().equals(userId)) {
+                channelInfo.setName(user.getUsername());
+            }
+        }
+        return channelInfo;
     }
+
 
     public List<ChannelMessage> findAllChannelByUser(String userId) {
         return channelRepo.findAllChannelByUser(userId);
