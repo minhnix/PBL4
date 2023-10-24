@@ -1,5 +1,5 @@
 const Avatar = (props) => {
-  var colors = [
+  let colors = [
     "#2196F3",
     "#32c787",
     "#00BCD4",
@@ -13,12 +13,12 @@ const Avatar = (props) => {
     "#e64a19",
     "#ff5722",
     "#795548",
-    "#607d8b",
     "#ffc107",
   ];
+  let name = props.name.trim().slice(0, 30);
   var hash = 0;
-  for (var i = 0; i < props.name?.length; i++) {
-    hash = 31 * hash + props.name?.charCodeAt(i);
+  for (var i = 0; i < name?.length; i++) {
+    hash = 31 * hash + name?.charCodeAt(i);
   }
   var index = Math.abs(hash % colors.length);
   return (
@@ -29,7 +29,7 @@ const Avatar = (props) => {
       }}
     >
       <span className="text-white text-2xl font-semibold absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        {props.name ? props.name.charAt(0).toUpperCase() : ""}
+        {name ? name.charAt(0).toUpperCase() : "?"}
       </span>
     </div>
   );

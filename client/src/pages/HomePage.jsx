@@ -1,4 +1,10 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth.context";
 import { BiMenu } from "react-icons/bi";
@@ -14,15 +20,25 @@ import axios from "axios";
 import { calculateTimeDifference } from "../utils/formatTime";
 import Avatar from "../components/Avatar";
 import { useMessage } from "../context/message.context";
+import { StompContext } from "usestomp-hook/lib/Provider";
+import { useStomp } from "usestomp-hook/lib";
+import Loader from "../components/Loader";
 
 const HomePage = () => {
   const { logout } = useAuth();
   const token = localStorage.getItem("token");
-  const { data, fetchData, reArrangeUsersOnMessageSend, userLoggedIn } =
-    useMessage();
+  const client = useContext(StompContext).stompClient;
+  const { send } = useStomp();
+  const {
+    data,
+    fetchData,
+    reArrangeUsersOnMessageSend,
+    userLoggedIn,
+    newMessage,
+    setNewMessage,
+  } = useMessage();
   const navigate = useNavigate();
   const chatContentRef = useRef(null);
-  const [hasFetchedData, setHasFetchedData] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isShowMenu, setIsShowMenu] = useState(false);
   const [isShowAddPopup, setIsShowAddPopup] = useState(false);
@@ -30,15 +46,19 @@ const HomePage = () => {
   const [searchChannelText, setSearchChannelText] = useState("");
   const [searchUserText, setSearchUserText] = useState("");
   //Fetch mesasge
+  const loaderRef = useRef(null);
   const [size, setSize] = useState(15);
   const [preCursor, setPreCursor] = useState("");
   const [nextCursor, setNextCursor] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   // current channel
   const [currentChannel, setCurrentChannel] = useState({
     id: "",
     isOnline: true,
     name: "",
     messageTime: "",
+    userId: null,
   });
   //all channels haven't messages
   const [allChannels, setAllChannels] = useState([]);
@@ -54,55 +74,91 @@ const HomePage = () => {
   const inputRef = useRef();
   const [inputValue, setInputValue] = useState("");
 
-  // handle getAllChannels created
-  const handleGetAllChannelCreated = async () => {
-    handleResetData();
-    try {
-      const res = await axios.get(
-        `http://localhost:8080/api/v1/channels/search?q=${searchChannelText}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setAllChannels(res.data);
-    } catch (err) {
-      console.log(
-        "🚀 ~ file: HomePage.jsx:95 ~ handleGetAllChannelCreated ~ err:",
-        err
-      );
+  const fetchMessage = useCallback(async () => {
+    if (isLoading) return;
 
-      setRenderMessages([]);
+    setIsLoading(true);
+
+    if (currentChannel.id != "") await handleGetOlderMessage();
+
+    setIsLoading(false);
+  }, [isLoading]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      const target = entries[0];
+      if (target.isIntersecting) {
+        fetchMessage();
+      }
+    });
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => {
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
+    };
+  }, [preCursor, fetchMessage]);
+
+  // handle getAllChannels created
+  const handleGetAllChannelCreated = async (e) => {
+    setSearchChannelText(e.target.value);
+    if (e.target.value == "") handleResetData();
+    else {
+      // e.preventDefault();
+      try {
+        const res = await axios.get(
+          `http://localhost:8080/api/v1/channels/search?q=${e.target.value}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setAllChannels(res.data);
+        console.log(
+          "🚀 ~ file: HomePage.jsx:121 ~ handleGetAllChannelCreated ~ res:",
+          res
+        );
+      } catch (err) {
+        console.log(
+          "🚀 ~ file: HomePage.jsx:95 ~ handleGetAllChannelCreated ~ err:",
+          err
+        );
+        setRenderMessages([]);
+      }
     }
   };
 
   // handler get old message from current channel
   const handleGetOlderMessage = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:8080/api/v1/messages/${currentChannel.id}?size=${size}&pre=${preCursor}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      // setMessages([res.data.data]);
-      setRenderMessages([...renderMessages, ...res.data.data]);
-      setPreCursor(res.data.previousCursor);
-      setNextCursor(res.data.nextCursor);
-      setHasFetchedData(false);
-    } catch (err) {
-      console.log(
-        "🚀 ~ file: HomePage.jsx:120 ~ handleGetOlderMessage ~ err:",
-        err
-      );
-    }
+    if (preCursor)
+      try {
+        const res = await axios.get(
+          `http://localhost:8080/api/v1/messages/${currentChannel.id}?size=${size}&pre=${preCursor}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setRenderMessages([...renderMessages, ...res.data.data]);
+        setPreCursor((pre) => res.data.previousCursor);
+        setNextCursor(res.data.nextCursor);
+      } catch (err) {
+        console.log(
+          "🚀 ~ file: HomePage.jsx:120 ~ handleGetOlderMessage ~ err:",
+          err
+        );
+      }
   };
 
   // get all messages from selected channel
   const handleGetCurrentChannelMessages = async (cur) => {
+    setIsLoading(true);
     try {
       const res = await axios.get(
         `http://localhost:8080/api/v1/messages/${cur.id}?size=${size}&pre=${cur.preCursor}`,
@@ -112,7 +168,7 @@ const HomePage = () => {
           },
         }
       );
-      setRenderMessages(handerTransformMessage(res.data.data));
+      setRenderMessages(res.data.data);
       setPreCursor(res.data.previousCursor);
       setNextCursor(res.data.nextCursor);
     } catch (err) {
@@ -123,6 +179,7 @@ const HomePage = () => {
 
       setRenderMessages([]);
     }
+    setIsLoading(false);
   };
 
   //Search user to create Channel
@@ -139,7 +196,6 @@ const HomePage = () => {
       setUsers(res.data);
     } catch (err) {
       console.log("🚀 ~ file: HomePage.jsx:163 ~ handleSearchUser ~ err:", err);
-
       setRenderMessages([]);
     }
   };
@@ -187,56 +243,53 @@ const HomePage = () => {
     }
   };
 
-  const handerTransformMessage = (messages) => {
-    return messages.map((message) => {
-      const position = message.sender === userLoggedIn.id ? "right" : "left";
-      return {
-        ...message,
-        position,
-      };
-    });
-  };
-
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
   };
 
   const handleSendMessage = () => {
     if (inputValue.trim() !== "") {
-      const newMessage = {
+      const newSendMessage = {
         position: "right",
-        type: "text",
+        type: "MESSAGE",
         content: inputValue,
         sender: {
           userId: userLoggedIn?.id,
           username: userLoggedIn?.username,
         },
-        date: Date.now(),
+        sendTo: currentChannel.userId ? currentChannel.userId : null,
+        channelId: currentChannel.id,
       };
-      setRenderMessages([newMessage, ...renderMessages]);
       setInputValue("");
       inputRef.current.value = "";
       scrollToBottom();
-      reArrangeUsersOnMessageSend(currentChannel.id, newMessage, [
-        newMessage,
-        ...renderMessages,
-      ]);
-
-      // TODO: Handle send ws
+      if (currentChannel.userId) {
+        send("/app/chat/pm", newSendMessage, {});
+      } else {
+        send(`/app/chat/group/${currentChannel.id}`, newSendMessage, {});
+      }
     }
   };
 
-  const handleChatItemClick = (isOnline, name, messageTime, idChannel) => {
+  const handleChatItemClick = (
+    isOnline,
+    name,
+    messageTime,
+    idChannel,
+    userId
+  ) => {
     setCurrentChannel({
       id: idChannel,
       name: name,
       isOnline: isOnline,
       messageTime: messageTime,
+      userId,
     });
 
     handleGetCurrentChannelMessages({
       id: idChannel,
       preCursor: "",
+      userId,
     });
   };
 
@@ -254,7 +307,14 @@ const HomePage = () => {
 
   const handleResetData = () => {
     setRenderMessages([]);
-    setCurrentChannel({ id: "", isOnline: false, name: "", messageTime: "" });
+    setCurrentChannel({
+      id: "",
+      isOnline: false,
+      name: "",
+      messageTime: "",
+      userId: null,
+    });
+    setPreCursor("");
   };
 
   const nav = useNavigate();
@@ -265,28 +325,67 @@ const HomePage = () => {
     }
   }, []);
 
-  // scroll to top of message
-  useEffect(() => {
-    if (token == null) return;
-    const chatContentDiv = chatContentRef.current;
-    var count = 0;
-    const handleScroll = () => {
-      if (
-        count * 200 < -1 * chatContentDiv.scrollTop &&
-        preCursor != null &&
-        !hasFetchedData
-      ) {
-        setHasFetchedData(true);
-        handleGetOlderMessage();
-        count++;
+  const subscribe = (client, path) => {
+    client.subscribe(
+      path,
+      ({ body }) => {
+        const message = JSON.parse(body);
+        setNewMessage(message);
+      },
+      {
+        Authorization: "Bearer " + token,
       }
-    };
-    chatContentDiv.addEventListener("scroll", handleScroll);
+    );
+  };
 
-    return () => {
-      chatContentDiv.removeEventListener("scroll", handleScroll);
+  const subscribeUserChatPM = (client) => {
+    const path = `/user/${userLoggedIn.id}/pm`;
+    subscribe(client, path);
+  };
+
+  const getGroupsOfUser = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/v1/channels?type=group`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return res.data;
+    } catch (err) {
+      console.log("🚀 ~ getGroupOfUser ~ err:", err);
+    }
+  };
+
+  const subscribeGroupChat = async (client) => {
+    const groups = await getGroupsOfUser();
+    if (groups == null) return;
+    groups.forEach((group) => {
+      const path = "/topic/group/" + group;
+      subscribe(client, path);
+    });
+  };
+
+  useEffect(() => {
+    client.onConnect = () => {
+      subscribeUserChatPM(client);
+      subscribeGroupChat(client);
     };
-  }, [handleGetOlderMessage]);
+  }, [client]);
+
+  useEffect(() => {
+    if (newMessage == null) return;
+    reArrangeUsersOnMessageSend(newMessage.channelId, {
+      sender: newMessage.sender,
+      content: newMessage.content,
+      date: newMessage.createdAt,
+    });
+    if (newMessage.channelId === currentChannel.id) {
+      setRenderMessages((pre) => [newMessage, ...pre]);
+    }
+  }, [newMessage]);
 
   useEffect(() => {
     fetchData();
@@ -374,15 +473,15 @@ const HomePage = () => {
                     size={20}
                     className={`text-[#1A1D24] dark:text-white`}
                     onClick={() => {
-                      handleGetAllChannelCreated(searchChannelText);
+                      handleGetAllChannelCreated(e);
                     }}
                   />
                   <input
                     type="text"
                     placeholder="Search Messenger"
                     className={`text-gray-700 placeholder-[#495FB8] dark:text-white bg-transparent text-sm outline-none`}
-                    onChange={(e) => setSearchChannelText(e.target.value)}
-                    onKeyDown={(e) => handleSearch(e)}
+                    onChange={(e) => handleGetAllChannelCreated(e)}
+                    // onKeyDown={(e) => handleSearch(e)}
                   ></input>
                 </div>
               </div>
@@ -403,12 +502,14 @@ const HomePage = () => {
                             isOnline: true,
                             name: item.channelName,
                             messageTime: "",
+                            userId: item.userId,
                           });
                           handleGetCurrentChannelMessages({
                             id: item.channelId,
                             isOnline: true,
                             name: item.channelName,
                             preCursor: "",
+                            userId: item.userId,
                           });
                         }}
                         key={index}
@@ -416,19 +517,20 @@ const HomePage = () => {
                     ))
                   : data.map((item, index) => (
                       <ChatItem
+                        item={item}
                         isDarkTheme={isDarkTheme}
                         name={item.channelName}
                         messageTime={item.createdAt}
                         isOnline={item.online}
                         latestMessage={item.latestMessage}
-                        sender={item.sender}
                         userLoggedIn={userLoggedIn}
                         onClick={() => {
                           handleChatItemClick(
                             item.online,
                             item.channelName,
                             item.createdAt,
-                            item.channelId
+                            item.channelId,
+                            item?.userId
                           );
                         }}
                         key={index}
@@ -508,11 +610,14 @@ const HomePage = () => {
                   {currentChannel.name != "" ? (
                     renderMessages?.map((message) =>
                       message.sender.userId != userLoggedIn.id ? (
-                        <div className="flex items-center gap-2 ml-2">
+                        <div
+                          className="flex items-center gap-2 ml-2"
+                          key={message.id}
+                        >
                           {message.sender.userId !== userLoggedIn.id && (
                             <Avatar name={message.sender.username} size={10} />
                           )}
-                          <p
+                          <div
                             className={`left-chat float-left break-all bg-white dark:bg-[#1A1D24] dark:text-white ${
                               isDarkTheme && "float-neumorphism-chat-dark"
                             } float-neumorphism-chat px-2 py-2 max-w-sm whitespace-normal flex items-center justify-center rounded text-sm`}
@@ -523,10 +628,10 @@ const HomePage = () => {
                                 {calculateTimeDifference(message.createdAt)}
                               </span>
                             </div>
-                          </p>
+                          </div>
                         </div>
                       ) : (
-                        <div className="">
+                        <div className="" key={message.createdAt}>
                           <p
                             className={`relative mr-4 right-chat float-right break-all bg-[#8090CB] text-white float-neumorphism-chatBox px-2 py-2 max-w-sm whitespace-normal rounded flex items-center justify-center text-sm`}
                           >
@@ -541,7 +646,17 @@ const HomePage = () => {
                       )
                     )
                   ) : (
-                    <span>Select to Chat</span>
+                    <div className="flex flex-col justify-center h-full items-center gap-4">
+                      <span>Select Channel to Show Messages</span>
+                      <img
+                        className="w-[400px] h-[400px]"
+                        src="https://i.redd.it/rwhpkq916y3z.jpg"
+                        alt="Nothing"
+                      />
+                    </div>
+                  )}
+                  {currentChannel.id != "" && (
+                    <div ref={loaderRef}>{isLoading && <Loader />}</div>
                   )}
                 </div>
               </div>
@@ -632,6 +747,7 @@ const HomePage = () => {
               {searchUserText != "" &&
                 users?.map((item, index) => (
                   <div
+                    key={index}
                     className="bg-red py-2 px-4 w-min flex gap-4 
                 items-center border border-black rounded-full cursor-pointer"
                     onClick={() => {
@@ -648,6 +764,7 @@ const HomePage = () => {
           <div className="flex gap-4 text-sm dark:text-white h-[100px] overflow-auto px-4 border-t-2 border-gray-400 pt-2">
             {listUsers?.map((item, index) => (
               <div
+                key={index}
                 className="bg-red py-2 px-4 w-min flex gap-2 h-8
                 items-center border border-black rounded-full cursor-pointer "
               >

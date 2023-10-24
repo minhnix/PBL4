@@ -1,17 +1,7 @@
 export const calculateTimeDifference = (epochTimestamp) => {
-  // Chuyển epoch timestamp thành milliseconds (đơn vị mili giây)
-  const epochMillis = epochTimestamp * 1000;
-
-  // Tạo một đối tượng Date từ epoch milliseconds
-  const convertedDate = new Date(epochMillis);
-
-  // Lấy thời gian hiện tại (milliseconds từ epoch)
+  const epochMillis = convertToEpochMillis(epochTimestamp);
   const currentTime = Date.now();
-
-  // Tính thời gian chênh lệch
   const timeDifference = currentTime - epochMillis;
-
-  // Chuyển đổi thời gian chênh lệch thành ngày, giờ, phút, giây
   const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
   const hoursDifference = Math.floor(
     (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
@@ -30,6 +20,17 @@ export const calculateTimeDifference = (epochTimestamp) => {
     return "now";
   }
 };
+
+function convertToEpochMillis(input) {
+  if (typeof input === "number") {
+    return input * 1000;
+  } else if (typeof input === "string") {
+    var dateObj = new Date(input);
+    return dateObj.getTime();
+  } else {
+    return null;
+  }
+}
 
 export const formatMessageTime = (timeObject) => {
   const { daysDifference, hoursDifference, minutesDifference } = timeObject;
