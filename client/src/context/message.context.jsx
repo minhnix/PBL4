@@ -41,6 +41,7 @@ const MessageProvider = (props) => {
       var targetUser = data.splice(targetUserIndex, 1)[0];
       targetUser = {
         ...targetUser,
+        sender: newMessage.sender,
         latestMessage: newMessage.content,
         createdAt: newMessage.date,
       };

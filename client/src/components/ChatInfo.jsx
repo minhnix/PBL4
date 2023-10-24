@@ -19,7 +19,9 @@ const ChatInfo = ({ idChannel, isOnline, isDarkTheme, name, messageTime }) => {
           )}
         </div>
         <div className="flex flex-col justify-between py-2">
-          <span className="font-semibold dark:text-white">{name}</span>
+          <span className="font-semibold dark:text-white">
+            {name.slice(0, 20)}
+          </span>
           <span className="text-gray-500 dark:text-white text-[12px]">
             {isOnline ? "Active now" : "Offline"}
           </span>

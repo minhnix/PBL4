@@ -66,6 +66,7 @@ export const SignUp = () => {
   };
 
   const handleChange = (e) => {
+    setError("");
     if (isSignUp) {
       setRegUser({
         ...regUser,
@@ -162,6 +163,12 @@ export const SignUp = () => {
         setIsEmptyPassword(true);
       }
       handleSignIn(e);
+    }
+  };
+
+  const keyEnterPress = (e) => {
+    if (e.key === "Enter") {
+      handleSubmit(e);
     }
   };
 
@@ -269,6 +276,7 @@ export const SignUp = () => {
                     placeholder="Username"
                     name="username"
                     onChange={handleChange}
+                    onKeyPress={keyEnterPress}
                     autoComplete="off"
                   />
                   {isSignUp && (
@@ -301,6 +309,7 @@ export const SignUp = () => {
                     placeholder="Password"
                     name="password"
                     onChange={handleChange}
+                    onKeyPress={keyEnterPress}
                   />
 
                   <span
