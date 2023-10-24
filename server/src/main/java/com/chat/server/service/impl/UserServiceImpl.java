@@ -36,13 +36,9 @@ public class UserServiceImpl implements UserService {
         if (userRepo.existsByUsername(signUpRequest.getUsername())) {
             throw new BadRequestException("Username already in use!!!");
         }
-        if (userRepo.existsByPhoneNumber(signUpRequest.getPhoneNumber())) {
-            throw new BadRequestException("Phone Number already in use!!!");
-        }
         User user = User.builder()
                 .username(signUpRequest.getUsername())
                 .email(signUpRequest.getEmail())
-                .phoneNumber(signUpRequest.getPhoneNumber())
                 .password(passwordEncoder.encode(signUpRequest.getPassword()))
                 .build();
         if (signUpRequest.getFirstname() != null && signUpRequest.getLastname() != null) {

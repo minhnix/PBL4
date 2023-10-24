@@ -31,6 +31,7 @@ public class ChatController {
 
         Message message = messageService.saveMessage(chatMessage);
         template.convertAndSendToUser(chatMessage.getSendTo(), "/pm", message);
+        template.convertAndSendToUser(chatMessage.getSender().getUserId(), "/pm", message);
     }
 
     @MessageMapping("/chat/group/{groupId}")

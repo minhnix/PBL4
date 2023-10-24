@@ -2,9 +2,7 @@ package com.chat.server.service.impl;
 
 
 import com.chat.server.exception.BadRequestException;
-import com.chat.server.exception.ResourceNotFoundException;
 import com.chat.server.model.Channel;
-import com.chat.server.model.User;
 import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.payload.response.ChannelMessage;
 import com.chat.server.payload.response.SearchChannelResponse;
@@ -16,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -90,9 +87,7 @@ public class ChannelServiceImpl implements ChannelService {
 
     @Override
     public List<String> getAllGroupOfUser(String userId) {
-        User user = userRepo.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        if (user.getChannels() == null)
-            return new ArrayList<>();
-        return user.getChannels().stream().map(ObjectId::toString).collect(Collectors.toList());
+        return channelRepo.findAllByUsersAndType(new ObjectId(userId), "group").stream()
+                .map(Channel::getId).collect(Collectors.toList());
     }
 }
