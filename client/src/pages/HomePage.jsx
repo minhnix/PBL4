@@ -257,16 +257,12 @@ const HomePage = () => {
           userId: userLoggedIn?.id,
           username: userLoggedIn?.username,
         },
-        date: Date.now(),
         sendTo: currentChannel.userId ? currentChannel.userId : null,
         channelId: currentChannel.id,
       };
-      setRenderMessages([newSendMessage, ...renderMessages]);
       setInputValue("");
       inputRef.current.value = "";
       scrollToBottom();
-      reArrangeUsersOnMessageSend(currentChannel.id, newSendMessage);
-
       if (currentChannel.userId) {
         send("/app/chat/pm", newSendMessage, {});
       } else {
@@ -334,13 +330,7 @@ const HomePage = () => {
       path,
       ({ body }) => {
         const message = JSON.parse(body);
-        if (
-          message.sendTo != null ||
-          message.sender.userId != userLoggedIn.id
-        ) {
-          // if the message send to group, only get message from another sender
-          setNewMessage((pre) => message);
-        }
+        setNewMessage(message);
       },
       {
         Authorization: "Bearer " + token,
@@ -387,14 +377,14 @@ const HomePage = () => {
 
   useEffect(() => {
     if (newMessage == null) return;
-    if (newMessage.channelId === currentChannel.id) {
-      setRenderMessages((pre) => [newMessage, ...pre]);
-    }
     reArrangeUsersOnMessageSend(newMessage.channelId, {
       sender: newMessage.sender,
       content: newMessage.content,
       date: newMessage.createdAt,
     });
+    if (newMessage.channelId === currentChannel.id) {
+      setRenderMessages((pre) => [newMessage, ...pre]);
+    }
   }, [newMessage]);
 
   useEffect(() => {

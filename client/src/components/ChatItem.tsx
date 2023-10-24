@@ -13,6 +13,7 @@ const ChatItem = ({
   userLoggedIn,
   onClick,
 }) => {
+  console.log("🚀 ~ messageTime:", item);
   return (
     <>
       <div
@@ -31,15 +32,16 @@ const ChatItem = ({
             )}
           </div>
           <div className="flex flex-col justify-between py-2">
-            <span className="font-semibold dark:text-white">{name.slice(0,20)}</span>
+            <span className="font-semibold dark:text-white">
+              {name.slice(0, 20)}
+            </span>
             <span className="text-gray-500 flex  gap-2 dark:text-white text-[12px]">
               <span>
-                {
-                  userLoggedIn?.id == item.sender?.userId
-                  ? 
-                    "You: " + latestMessage.slice(0,15)
-                  : latestMessage.slice(0,15)
-                }
+                {userLoggedIn?.id == item.sender?.userId
+                  ? "You: " + latestMessage.slice(0, 15)
+                  : item.type == "group"
+                  ? item.sender?.username + ": " + latestMessage.slice(0, 15)
+                  : latestMessage.slice(0, 15)}
               </span>
 
               <span>{calculateTimeDifference(messageTime)}</span>

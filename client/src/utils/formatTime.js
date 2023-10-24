@@ -1,6 +1,5 @@
 export const calculateTimeDifference = (epochTimestamp) => {
-  const epochMillis = epochTimestamp * 1000;
-  const convertedDate = new Date(epochMillis);
+  const epochMillis = convertToEpochMillis(epochTimestamp);
   const currentTime = Date.now();
   const timeDifference = currentTime - epochMillis;
   const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
@@ -21,6 +20,17 @@ export const calculateTimeDifference = (epochTimestamp) => {
     return "now";
   }
 };
+
+function convertToEpochMillis(input) {
+  if (typeof input === "number") {
+    return input * 1000;
+  } else if (typeof input === "string") {
+    var dateObj = new Date(input);
+    return dateObj.getTime();
+  } else {
+    return null;
+  }
+}
 
 export const formatMessageTime = (timeObject) => {
   const { daysDifference, hoursDifference, minutesDifference } = timeObject;
