@@ -79,4 +79,9 @@ public class UserServiceImpl implements UserService {
         else
             return userRepo.findByIdIsNotAndUsernameContaining(user.getId(), keyword);
     }
+
+    @Override
+    public void changeOnlineStatus(String userId, boolean status) {
+        userRepo.updateOnlineStatus(userId, status);
+    }
 }

@@ -1,12 +1,16 @@
 package com.chat.server.controller;
 
 
+import com.chat.server.exception.ForbiddenException;
 import com.chat.server.model.User;
 import com.chat.server.payload.request.LoginRequest;
 import com.chat.server.payload.request.SignUpRequest;
 import com.chat.server.payload.response.ApiResponse;
 import com.chat.server.payload.response.JwtAuthenticationResponse;
+import com.chat.server.security.CurrentUser;
+import com.chat.server.security.CustomUserDetails;
 import com.chat.server.security.JwtTokenProvider;
+import com.chat.server.service.UserService;
 import com.chat.server.service.impl.UserServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -16,10 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -28,7 +29,7 @@ import java.net.URI;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final JwtTokenProvider tokenProvider;
 
     public AuthController(AuthenticationManager authenticationManager, UserServiceImpl userService, JwtTokenProvider tokenProvider) {
@@ -48,6 +49,7 @@ public class AuthController {
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = tokenProvider.generateToken(authentication);
+            userService.changeOnlineStatus(((CustomUserDetails) authentication.getPrincipal()).getId(), true);
             return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(false, "Username or password incorrect"));
@@ -63,6 +65,13 @@ public class AuthController {
                 .buildAndExpand(user.getUsername()).toUri();
 
         return ResponseEntity.created(location).body(new ApiResponse(true, "User registered successfully"));
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.OK)
+    public void logout(@CurrentUser CustomUserDetails user) {
+        if (user == null) throw new ForbiddenException("Access denied");
+        userService.changeOnlineStatus(user.getId(), false);
     }
 
 }

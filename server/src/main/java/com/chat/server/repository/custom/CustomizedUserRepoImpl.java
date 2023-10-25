@@ -26,6 +26,12 @@ public class CustomizedUserRepoImpl implements CustomizedUserRepo {
         updateUser(update, userId);
     }
 
+    @Override
+    public void updateOnlineStatus(String userId, boolean status) {
+        Update update = new Update().set("isOnline", status);
+        updateUser(update, userId);
+    }
+
     private void updateUser(Update updateQuery, String userId) {
         template.updateFirst(Query.query(Criteria.where("id").is(userId)), updateQuery, User.class);
     }

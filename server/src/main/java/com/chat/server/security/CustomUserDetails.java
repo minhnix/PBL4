@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Objects;
 
+
 public class CustomUserDetails implements UserDetails {
     @Valid
     private User user;
