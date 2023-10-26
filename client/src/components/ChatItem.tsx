@@ -37,7 +37,9 @@ const ChatItem = ({
             </span>
             <span className="text-gray-500 flex  gap-2 dark:text-white text-[12px]">
               <span>
-                {userLoggedIn?.id == item.sender?.userId
+                {item.messageType == "CREATE"
+                  ? latestMessage
+                  : userLoggedIn?.id == item.sender?.userId
                   ? "You: " + latestMessage.slice(0, 15)
                   : item.type == "group"
                   ? item.sender?.username + ": " + latestMessage.slice(0, 15)

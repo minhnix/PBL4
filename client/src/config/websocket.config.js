@@ -5,9 +5,9 @@ export const config = {
     Authorization: "Bearer " + token,
   },
   brokerURL: "ws://localhost:8080/ws",
-  reconnectDelay: 10000,
+  reconnectDelay: 500,
   heartbeatOutgoing: 5000,
-  heartbeatIncoming: 5000,
+  heartbeatIncoming: 0,
   debug: function (str) {
     console.log("STOMP DEBUG: " + str);
   },

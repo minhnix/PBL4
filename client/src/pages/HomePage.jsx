@@ -377,11 +377,7 @@ const HomePage = () => {
 
   useEffect(() => {
     if (newMessage == null) return;
-    reArrangeUsersOnMessageSend(newMessage.channelId, {
-      sender: newMessage.sender,
-      content: newMessage.content,
-      date: newMessage.createdAt,
-    });
+    reArrangeUsersOnMessageSend(newMessage.channelId, newMessage);
     if (newMessage.channelId === currentChannel.id) {
       setRenderMessages((pre) => [newMessage, ...pre]);
     }
@@ -609,7 +605,9 @@ const HomePage = () => {
                 >
                   {currentChannel.name != "" ? (
                     renderMessages?.map((message) =>
-                      message.sender.userId != userLoggedIn.id ? (
+                      message.type == "CREATE" ? (
+                        <p>CC</p>
+                      ) : message.sender.userId != userLoggedIn.id ? (
                         <div
                           className="flex items-center gap-2 ml-2"
                           key={message.id}
