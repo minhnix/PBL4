@@ -72,7 +72,8 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
                         .first("content").as("latestMessage")
                         .first("createdAt").as("createdAt")
                         .first("sender").as("sender")
-                        .first("createdAt").as("createdAt"),
+                        .first("createdAt").as("createdAt")
+                        .first("type").as("messageType"),
                 Aggregation.lookup(User.COLLECTION_NAME, "_id", "channels", "userInfos"),
                 Aggregation.sort(Sort.Direction.DESC, "createdAt")
         );

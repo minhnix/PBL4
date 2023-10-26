@@ -2,6 +2,7 @@ package com.chat.server.payload.response;
 
 import com.chat.server.model.User;
 import com.chat.server.model.UserWithUsername;
+import com.chat.server.payload.request.ChatMessage;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -21,6 +22,7 @@ public class ChannelMessage {
     private String type;
     private UserWithUsername sender;
     private String latestMessage;
+    private ChatMessage.Type messageType;
     private Instant createdAt;
     private boolean isOnline;
     private String userId;

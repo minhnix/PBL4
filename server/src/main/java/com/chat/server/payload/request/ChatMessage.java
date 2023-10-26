@@ -14,7 +14,8 @@ public class ChatMessage {
     public enum Type {
         MESSAGE,
         JOIN,
-        LEAVE
+        LEAVE,
+        CREATE
     }
 
     private UserWithUsername sender;
