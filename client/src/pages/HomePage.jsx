@@ -23,6 +23,9 @@ import { useMessage } from "../context/message.context";
 import { StompContext } from "usestomp-hook/lib/Provider";
 import { useStomp } from "usestomp-hook/lib";
 import Loader from "../components/Loader";
+import MessageCenter from "../components/MessageCenter";
+import MessageSend from "../components/MessageSend";
+import MessageReceived from "../components/MessageReceived";
 
 const HomePage = () => {
   const { logout } = useAuth();
@@ -330,6 +333,10 @@ const HomePage = () => {
       path,
       ({ body }) => {
         const message = JSON.parse(body);
+        if (message.type == "CREATE") {
+          const path = "/topic/group/" + message.channelId;
+          subscribe(client, path);
+        }
         setNewMessage(message);
       },
       {
@@ -606,41 +613,22 @@ const HomePage = () => {
                   {currentChannel.name != "" ? (
                     renderMessages?.map((message) =>
                       message.type == "CREATE" ? (
-                        <p>CC</p>
+                        <MessageCenter
+                          messageType={message?.type}
+                          content={message?.content}
+                        />
                       ) : message.sender.userId != userLoggedIn.id ? (
-                        <div
-                          className="flex items-center gap-2 ml-2"
-                          key={message.id}
-                        >
-                          {message.sender.userId !== userLoggedIn.id && (
-                            <Avatar name={message.sender.username} size={10} />
-                          )}
-                          <div
-                            className={`left-chat float-left break-all bg-white dark:bg-[#1A1D24] dark:text-white ${
-                              isDarkTheme && "float-neumorphism-chat-dark"
-                            } float-neumorphism-chat px-2 py-2 max-w-sm whitespace-normal flex items-center justify-center rounded text-sm`}
-                          >
-                            {message.content}
-                            <div className="left-chat-tooltip text-white bg-gray-400 dark:bg-white dark:text-gray-500 min-w-12 px-2 h-8 absolute left-[120%] text-sm top-[50%] translate-y-[-50%] flex items-center justify-center rounded -z-10">
-                              <span>
-                                {calculateTimeDifference(message.createdAt)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                        <MessageReceived
+                          isDarkTheme={isDarkTheme}
+                          content={message?.content}
+                          username={message?.sender.username}
+                          createdAt={message?.createdAt}
+                        />
                       ) : (
-                        <div className="" key={message.createdAt}>
-                          <p
-                            className={`relative mr-4 right-chat float-right break-all bg-[#8090CB] text-white float-neumorphism-chatBox px-2 py-2 max-w-sm whitespace-normal rounded flex items-center justify-center text-sm`}
-                          >
-                            {message.content}
-                            <div className="right-chat-tooltip bg-gray-400 min-w-12 dark:bg-white dark:text-gray-500 px-2 h-8 absolute right-[120%] text-sm top-[50%] translate-y-[-50%] flex items-center justify-center rounded -z-10">
-                              <span>
-                                {calculateTimeDifference(message.createdAt)}
-                              </span>
-                            </div>
-                          </p>
-                        </div>
+                        <MessageSend
+                          createdAt={message?.createdAt}
+                          content={message?.content}
+                        />
                       )
                     )
                   ) : (

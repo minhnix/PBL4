@@ -13,7 +13,7 @@ const ChatItem = ({
   userLoggedIn,
   onClick,
 }) => {
-  console.log("🚀 ~ messageTime:", item);
+  // console.log("🚀 ~ messageTime:", item);
   return (
     <>
       <div
