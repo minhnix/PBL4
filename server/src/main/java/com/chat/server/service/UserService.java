@@ -16,4 +16,5 @@ public interface UserService {
 
     void deleteUser(String id);
     List<User> findByKeyword(String keyword, CustomUserDetails user);
+    void changeOnlineStatus(String userId, boolean status);
 }

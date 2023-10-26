@@ -1,5 +1,6 @@
 package com.chat.server.controller;
 
+import com.chat.server.exception.ForbiddenException;
 import com.chat.server.model.Message;
 import com.chat.server.model.UserWithUsername;
 import com.chat.server.payload.request.ChatMessage;
@@ -23,6 +24,7 @@ public class ChatController {
     @MessageMapping("/chat/pm")
     public void handlePrivateMessage(@Payload ChatMessage chatMessage, UserPrincipal principal) {
         log.info("client send chat: {}", chatMessage);
+        if (!principal.getName().equals(chatMessage.getSender().getUserId())) throw new ForbiddenException("Access denied");
         chatMessage.setSender(new UserWithUsername(
                 principal.getName(),
                 principal.getUsername()
@@ -37,6 +39,7 @@ public class ChatController {
     @MessageMapping("/chat/group/{groupId}")
     public void handleGroupMessage(@DestinationVariable String groupId,@Payload ChatMessage chatMessage, UserPrincipal principal) {
         log.info("client send to group: {}", chatMessage);
+        if (!principal.getName().equals(chatMessage.getSender().getUserId())) throw new ForbiddenException("Access denied");
         chatMessage.setSender(new UserWithUsername(
                 principal.getName(),
                 principal.getUsername()
