@@ -2,17 +2,22 @@ package com.chat.server.controller;
 
 import com.chat.server.exception.ForbiddenException;
 import com.chat.server.model.Channel;
+import com.chat.server.model.Message;
 import com.chat.server.payload.request.ChannelRequest;
+import com.chat.server.payload.request.ChatMessage;
 import com.chat.server.payload.request.UserHelper;
 import com.chat.server.payload.response.ApiResponse;
 import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.security.CurrentUser;
 import com.chat.server.security.CustomUserDetails;
 import com.chat.server.service.ChannelService;
+import com.chat.server.service.MessageService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -24,7 +29,10 @@ import java.net.URI;
 @Slf4j
 public class ChannelController {
 
-    public final ChannelService channelService;
+    private final ChannelService channelService;
+    private final SimpMessagingTemplate template;
+    private final MessageService messageService;
+
 
     @GetMapping({"/", ""})
     public ResponseEntity<?> getAllChannels(@CurrentUser CustomUserDetails currentUser, @RequestParam(value = "type", required = false) String type) {
@@ -46,10 +54,18 @@ public class ChannelController {
     @PostMapping("/create")
     public ResponseEntity<?> createChannel(@Valid @RequestBody ChannelRequest channelRequest) {
         Channel channel = channelService.createChannel(channelRequest.getType(), channelRequest.getName(), channelRequest.getUsers());
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentContextPath().path("api/channels/{name}")
-                .buildAndExpand(channel.getName()).toUri();
-        return ResponseEntity.created(location).body(new ApiResponse(true, "Channel create successfully"));
+        if (channel.getType().equals("group")) {
+            ChatMessage chatMessage = ChatMessage.builder()
+                    .content("Nhóm " + channel.getName() + " đã được lập")
+                    .channelId(channel.getId())
+                    .type(ChatMessage.Type.CREATE)
+                    .build();
+            Message message = messageService.saveMessage(chatMessage);
+            for (ObjectId userId : channel.getUsers()) {
+                template.convertAndSendToUser(userId.toString(), "/pm", message);
+            }
+        }
+        return ResponseEntity.ok(new ApiResponse(true, "Channel create successfully"));
     }
 
     @GetMapping("/{channelId}")
