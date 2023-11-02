@@ -30,14 +30,14 @@ public class ChannelServiceImpl implements ChannelService {
         if (type.equals("pm") && userIds.size() != 2) {
             throw new BadRequestException("Number of user must be 2");
         }
-
+        if (type.equals("pm") && channelRepo.existChannelPM(userIds.toArray(new ObjectId[0]))) {
+            throw new BadRequestException("Channel PM already exists!!!!!");
+        }
         Channel channel = Channel.builder()
                 .type(type)
                 .name(name)
                 .users(userIds)
                 .build();
-
-
         Channel channel1 = channelRepo.save(channel);
         for (var userId : userIds)
             userRepo.addChannelToUser(channel1.getId(), userId.toString());

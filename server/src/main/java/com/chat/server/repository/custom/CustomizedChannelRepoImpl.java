@@ -92,6 +92,13 @@ public class CustomizedChannelRepoImpl implements CustomizedChannelRepo {
         return responses;
     }
 
+    @Override
+    public boolean existChannelPM(ObjectId... userIds) {
+        Query query = Query.query(Criteria.where("type").is("pm")
+                        .and("users").all(userIds));
+        return template.exists(query, Channel.class, Channel.COLLECTION_NAME);
+    }
+
     private void setOnlineAndChannelName(List<ChannelMessage> channelMessages, List<Channel> channels, String userId) {
         for (var channelMessage : channelMessages) {
             channelMessage.setOnline(

@@ -14,7 +14,6 @@ public class HeartbeatController {
     private final OnlineStatusScheduler scheduler;
     @MessageMapping("/heartbeat-online")
     public void handleHeartbeatOnline(UserPrincipal user) {
-        log.info(user.getUsername() + " - " + user.getName());
         scheduler.userHeartbeatReceive(user.getName());
     }
 }
