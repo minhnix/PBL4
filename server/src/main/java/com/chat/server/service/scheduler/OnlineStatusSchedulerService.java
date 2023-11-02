@@ -18,7 +18,7 @@ public class OnlineStatusSchedulerService implements OnlineStatusScheduler {
     private final Map<String, ScheduledFuture<?>> userTasks = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
     private final UserService userService;
-    private static final long MAX_IDLE_TIME = 30 * 1000;
+    private static final long MAX_IDLE_TIME = 90 * 1000;
 
     public OnlineStatusSchedulerService(TaskScheduler taskScheduler, UserService userService) {
         this.taskScheduler = taskScheduler;
@@ -39,7 +39,6 @@ public class OnlineStatusSchedulerService implements OnlineStatusScheduler {
             long lastHeartbeatTime = userStatus.getOrDefault(userId, 0L);
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastHeartbeatTime >= MAX_IDLE_TIME) {
-                log.info("UserId: " + userId + " is offline");
                 userStatus.remove(userId);
                 userTasks.remove(userId);
                 userService.changeOnlineStatus(userId, false);
@@ -51,12 +50,11 @@ public class OnlineStatusSchedulerService implements OnlineStatusScheduler {
     @Override
     @Scheduled(fixedDelay = 10 * 60 * 1000)
     public void checkStatusScheduler() {
-        log.info("Scheduler checkStatusScheduler");
+        log.info("Scheduler: checkStatusScheduler");
         long currentTime = System.currentTimeMillis();
         for (String userId : userStatus.keySet()) {
             long lastHeartbeatTime = userStatus.get(userId);
             if (currentTime - lastHeartbeatTime >= MAX_IDLE_TIME) {
-                log.info("UserId: " + userId + " is offline");
                 userStatus.remove(userId);
                 userTasks.remove(userId);
                 userService.changeOnlineStatus(userId, false);
