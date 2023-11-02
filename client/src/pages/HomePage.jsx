@@ -17,7 +17,6 @@ import { RiSendPlaneFill } from "react-icons/ri";
 import ChatInfo from "../components/ChatInfo";
 import ChatSearchItem from "../components/ChatSearchItem";
 import axios from "axios";
-import { calculateTimeDifference } from "../utils/formatTime";
 import Avatar from "../components/Avatar";
 import { useMessage } from "../context/message.context";
 import { StompContext } from "usestomp-hook/lib/Provider";
@@ -54,6 +53,7 @@ const HomePage = () => {
   const [preCursor, setPreCursor] = useState("");
   const [nextCursor, setNextCursor] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  let isOnline = false;
 
   // current channel
   const [currentChannel, setCurrentChannel] = useState({
@@ -390,8 +390,45 @@ const HomePage = () => {
     }
   }, [newMessage]);
 
+  const handleOnlineStatus = () => {
+    isOnline = true;
+  };
+
   useEffect(() => {
     fetchData();
+
+    document.addEventListener("mousemove", handleOnlineStatus);
+    document.addEventListener("click", handleOnlineStatus);
+    document.addEventListener("keydown", handleOnlineStatus);
+
+    return () => {
+      document.removeEventListener("mousemove", handleOnlineStatus);
+      document.removeEventListener("click", handleOnlineStatus);
+      document.removeEventListener("keydown", handleOnlineStatus);
+    };
+  }, []);
+
+  const sendStatusToServer = () => {
+    send("/app/heartbeat-online", {}, {});
+  };
+
+  useEffect(() => {
+    const intervalFetch = setInterval(() => {
+      userLoggedIn ? fetchData() : null;
+    }, 2 * 60 * 1000);
+
+    return () => clearInterval(intervalFetch);
+  }, []);
+
+  useEffect(() => {
+    const intervalSend = setInterval(() => {
+      if (isOnline && userLoggedIn) {
+        sendStatusToServer();
+        isOnline = false;
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalSend);
   }, []);
 
   if (token == null) return <div></div>;
