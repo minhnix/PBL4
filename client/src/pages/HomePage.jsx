@@ -5,11 +5,11 @@ import { BiMenu } from "react-icons/bi";
 import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import ChatItem from "../components/ChatItem";
 import { GiExitDoor } from "react-icons/gi";
-import { BsCameraVideoFill } from "react-icons/bs";
 import { PiUserCirclePlusLight } from "react-icons/pi";
 import { RiSendPlaneFill } from "react-icons/ri";
 import ChatInfo from "../components/ChatInfo";
 import { formatMessageTime } from "../utils/formatTime";
+import Menu from "../components/VideoCallMenu";
 
 const HomePage = () => {
   const { logout } = useAuth();
@@ -100,6 +100,17 @@ const HomePage = () => {
       handleSendMessage();
     }
   };
+
+  // Video call
+
+  const [currentPage, setCurrentPage] = useState("home");
+  const [isAnswer, setAnswer] = useState(true);
+
+  const handleCloseCallPopup = () => {
+    setAnswer(false);
+  };
+
+  //End video call
   return (
     <>
       {/* <input
@@ -263,15 +274,11 @@ const HomePage = () => {
                   />
                 </div>
                 <div className="w-[40px] flex items-center justify-center">
-                  <button
-                    className={` w-[40px] h-[40px] rounded-full cursor-pointer feature-btn ${
-                      isDarkTheme
-                        ? "float-neumorphism-chat-dark feature-btn-dark"
-                        : "float-neumorphism-chat feature-btn"
-                    } flex items-center justify-center text-[#495FB8]`}
-                  >
-                    <BsCameraVideoFill size={20} />
-                  </button>
+                  <Menu
+                    setPage={setCurrentPage}
+                    isDarkTheme={isDarkTheme}
+                    isAnswer={false}
+                  />
                 </div>
               </div>
               <div
@@ -403,6 +410,18 @@ const HomePage = () => {
             </button>
           </div>
         </div>
+        {isAnswer && (
+          <div className="absolute top-0 left-0 bg-black/30 w-full h-full">
+            <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[200px] h-[100px] bg-white rounded shadow-xl flex justify-evenly items-center px-4">
+              <Menu
+                setPage={setCurrentPage}
+                isDarkTheme={isDarkTheme}
+                isAnswer={true}
+                setIsAnswer={handleCloseCallPopup}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
