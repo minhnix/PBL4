@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import axios from "axios";
+import RecievedCallPopup from "../components/RecievedCallPopUp";
 import Menu from "../components/VideoCallMenu";
 import { BiMenu } from "react-icons/bi";
 import Loader from "../components/Loader";
@@ -42,6 +43,7 @@ const HomePage = () => {
   } = useMessage();
   const navigate = useNavigate();
   const chatContentRef = useRef(null);
+  const [status, setStatus] = useState("");
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isShowMenu, setIsShowMenu] = useState(false);
   const [isShowAddPopup, setIsShowAddPopup] = useState(false);
@@ -448,18 +450,12 @@ const HomePage = () => {
   if (token == null) return <div></div>;
   return (
     <>
-      {isAnswer && (
-        <div className="absolute top-0 z-40 left-0 bg-black/30 w-full h-full">
-          <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[200px] h-[100px] bg-white rounded shadow-xl flex justify-evenly items-center px-4">
-            <Menu
-              setPage={setCurrentPage}
-              isDarkTheme={isDarkTheme}
-              isAnswer={true}
-              setIsAnswer={handleCloseCallPopup}
-            />
-          </div>
-        </div>
-      )}
+      <RecievedCallPopup
+        name={"Buoi Hoang Minh"}
+        callId={"Jv64hB17xbrEU8pJYuDZ"}
+        status={status}
+        setStatus={setStatus}
+      />
       <div className={`${isDarkTheme && "dark"}`}>
         <div
           className={`w-full h-screen bg-[#ECF0F3]  flex items-center duration-300 transition-all dark:bg-[#1A1D24]`}

@@ -2,6 +2,7 @@ import React from "react";
 import { BsCameraVideoFill } from "react-icons/bs";
 import { IoCall } from "react-icons/io5";
 import { AiOutlineClose } from "react-icons/ai";
+import RecievedCallPopUp from "./RecievedCallPopUp";
 
 const Menu = ({ setPage, isDarkTheme, isAnswer, setIsAnswer }) => {
   return (
@@ -27,42 +28,13 @@ const Menu = ({ setPage, isDarkTheme, isAnswer, setIsAnswer }) => {
           />
         </button>
       ) : (
-        // Khi có cuộc gọi
-        <>
-          <button className="w-10 h-10 rounded-full border-2 border-green-200 flex items-center justify-center hover:opacity-60">
-            <IoCall
-              size={18}
-              className="text-green-500"
-              onClick={() => {
-                // TODO: get callId from firebase
-                const callId = "Jv64hB17xbrEU8pJYuDZ";
-                window.open(
-                  `http://localhost:5173/video/?mode=join&callId=${callId}`,
-                  "_blank",
-                  "rel=noopener noreferrer"
-                );
-                setPage("join");
-                console.log({
-                  offerId: "user1id",
-                  answerId: "user2id",
-                  channelId: "channelId",
-                  callId: "callId",
-                  isAccepted: true,
-                });
-              }}
-            />
-          </button>
-          <button className="w-10 h-10 rounded-full border-2 border-red-300 flex items-center justify-center hover:opacity-60">
-            {/* chỉ tắt trên giao diện, chưa xóa trên firebase + sv */}
-            <AiOutlineClose
-              size={18}
-              className="text-red-500"
-              onClick={() => {
-                setIsAnswer();
-              }}
-            />
-          </button>
-        </>
+        ""
+        //   <RecievedCallPopup
+        //   name={"Buoi Hoang Minh"}
+        //   callId={"Jv64hB17xbrEU8pJYuDZ"}
+        //   status={status}
+        //   setStatus={setStatus}
+        // />
       )}
     </>
   );
