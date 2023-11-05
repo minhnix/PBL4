@@ -5,26 +5,27 @@ import React, {
   useContext,
   useCallback,
 } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/auth.context";
-import { BiMenu } from "react-icons/bi";
-import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
-import ChatItem from "../components/ChatItem";
-import { GiExitDoor } from "react-icons/gi";
-import { BsCameraVideoFill } from "react-icons/bs";
-import { PiUserCirclePlusLight } from "react-icons/pi";
-import { RiSendPlaneFill } from "react-icons/ri";
-import ChatInfo from "../components/ChatInfo";
-import ChatSearchItem from "../components/ChatSearchItem";
 import axios from "axios";
-import Avatar from "../components/Avatar";
-import { useMessage } from "../context/message.context";
-import { StompContext } from "usestomp-hook/lib/Provider";
-import { useStomp } from "usestomp-hook/lib";
+import Menu from "../components/VideoCallMenu";
+import { BiMenu } from "react-icons/bi";
 import Loader from "../components/Loader";
-import MessageCenter from "../components/MessageCenter";
+import Avatar from "../components/Avatar";
+import { GiExitDoor } from "react-icons/gi";
+import { useStomp } from "usestomp-hook/lib";
+import ChatInfo from "../components/ChatInfo";
+import ChatItem from "../components/ChatItem";
+import { useNavigate } from "react-router-dom";
+import { RiSendPlaneFill } from "react-icons/ri";
+import { useAuth } from "../context/auth.context";
+import { BsCameraVideoFill } from "react-icons/bs";
 import MessageSend from "../components/MessageSend";
+import { PiUserCirclePlusLight } from "react-icons/pi";
+import MessageCenter from "../components/MessageCenter";
+import { useMessage } from "../context/message.context";
+import ChatSearchItem from "../components/ChatSearchItem";
+import { StompContext } from "usestomp-hook/lib/Provider";
 import MessageReceived from "../components/MessageReceived";
+import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 
 const HomePage = () => {
   const { logout } = useAuth();
@@ -320,10 +321,9 @@ const HomePage = () => {
     setPreCursor("");
   };
 
-  const nav = useNavigate();
   useEffect(() => {
     if (!token) {
-      nav("/signin");
+      navigate("/signin");
       return;
     }
   }, []);
@@ -395,6 +395,11 @@ const HomePage = () => {
   };
 
   useEffect(() => {
+    if (userLoggedIn == null) window.location.reload();
+    console.log(
+      "🚀 ~ file: HomePage.jsx:398 ~ useEffect ~ userLoggedIn:",
+      userLoggedIn
+    );
     fetchData();
 
     document.addEventListener("mousemove", handleOnlineStatus);
@@ -430,10 +435,31 @@ const HomePage = () => {
 
     return () => clearInterval(intervalSend);
   }, []);
+  // Video call
 
+  const [currentPage, setCurrentPage] = useState("home");
+  const [isAnswer, setAnswer] = useState(true);
+
+  const handleCloseCallPopup = () => {
+    setAnswer(false);
+  };
+
+  //end
   if (token == null) return <div></div>;
   return (
     <>
+      {isAnswer && (
+        <div className="absolute top-0 z-40 left-0 bg-black/30 w-full h-full">
+          <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[200px] h-[100px] bg-white rounded shadow-xl flex justify-evenly items-center px-4">
+            <Menu
+              setPage={setCurrentPage}
+              isDarkTheme={isDarkTheme}
+              isAnswer={true}
+              setIsAnswer={handleCloseCallPopup}
+            />
+          </div>
+        </div>
+      )}
       <div className={`${isDarkTheme && "dark"}`}>
         <div
           className={`w-full h-screen bg-[#ECF0F3]  flex items-center duration-300 transition-all dark:bg-[#1A1D24]`}
@@ -630,7 +656,14 @@ const HomePage = () => {
                         : "float-neumorphism-chat feature-btn"
                     } flex items-center justify-center text-[#495FB8]`}
                   >
-                    <BsCameraVideoFill size={20} />
+                    {/* <BsCameraVideoFill size={20} /> */}
+                    <div className="w-[40px] flex items-center justify-center">
+                      <Menu
+                        setPage={setCurrentPage}
+                        isDarkTheme={isDarkTheme}
+                        isAnswer={false}
+                      />
+                    </div>
                   </button>
                 </div>
               </div>
@@ -651,11 +684,13 @@ const HomePage = () => {
                     renderMessages?.map((message) =>
                       message.type == "CREATE" ? (
                         <MessageCenter
+                          key={message?.id}
                           messageType={message?.type}
                           content={message?.content}
                         />
                       ) : message.sender.userId != userLoggedIn.id ? (
                         <MessageReceived
+                          key={message?.id}
                           isDarkTheme={isDarkTheme}
                           content={message?.content}
                           username={message?.sender.username}
@@ -663,6 +698,7 @@ const HomePage = () => {
                         />
                       ) : (
                         <MessageSend
+                          key={message?.id}
                           createdAt={message?.createdAt}
                           content={message?.content}
                         />
@@ -733,7 +769,7 @@ const HomePage = () => {
             isShowAddPopup
               ? "opacity-100 top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]"
               : "opacity-0 top-[-100%] translate-x-[-50%] translate-y-[-50%] left-[50%]"
-          } transition-all duration-300 linear w-[500px] h-[500px] rounded-xl bg-white dark:bg-[#2D323D] flex flex-col shadow-2xl`}
+          } transition-all duration-300 linear w-[400px] h-[450px] rounded-xl bg-white dark:bg-[#2D323D] flex flex-col shadow-2xl`}
         >
           <div
             className={`w-full flex items-center justify-center py-4 relative dark:text-white`}
@@ -747,6 +783,7 @@ const HomePage = () => {
                   setIsShowAddPopup(false);
                   setListUsers([]);
                   setUsers([]);
+                  setIsEmptyChannelName(false);
                 }}
               />
             </div>
@@ -765,46 +802,41 @@ const HomePage = () => {
               }}
             />
           </div>
+          {/* list user after search */}
           <div className="w-full h-[400px] px-2 pt-2">
-            <div className="flex flex-col gap-4 text-sm dark:text-white h-[200px] overflow-auto">
-              {searchUserText != "" &&
+            <div className="flex flex-col gap-4  mt-4 text-sm dark:text-white h-[200px] overflow-auto">
+              {searchUserText !== "" &&
                 users?.map((item, index) => (
                   <div
                     key={index}
-                    className="bg-red py-2 px-4 w-min flex gap-4 
-                items-center border border-black rounded-full cursor-pointer"
+                    className="bg-red py-2 px-4 w-[80%] mx-auto flex justify-between gap-4 items-center border border-black rounded-md cursor-pointer"
                     onClick={() => {
-                      if (!listUsers.some((user) => user.id === item.id)) {
+                      const checkbox = document.querySelector(
+                        `#${item.username}`
+                      );
+                      if (checkbox && checkbox.checked == true) {
+                        checkbox.checked = false;
+                        setListUsers(
+                          listUsers.filter((user) => user.id != item.id)
+                        );
+                      } else {
+                        checkbox.checked = true;
                         setListUsers([...listUsers, item]);
                       }
                     }}
                   >
                     {item?.username}
+                    <input
+                      type="checkbox"
+                      name="listUser"
+                      id={item.username}
+                      value={item}
+                    />
                   </div>
                 ))}
             </div>
           </div>
-          <div className="flex gap-4 text-sm dark:text-white h-[100px] overflow-auto px-4 border-t-2 border-gray-400 pt-2">
-            {listUsers?.map((item, index) => (
-              <div
-                key={index}
-                className="bg-red py-2 px-4 w-min flex gap-2 h-8
-                items-center border border-black rounded-full cursor-pointer "
-              >
-                {item?.username}
-                <div>
-                  <AiOutlineClose
-                    size={16}
-                    onClick={() =>
-                      setListUsers(
-                        listUsers.filter((user) => user.id != item.id)
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Name group */}
           <div className="flex flex-col gap-2 my-2">
             {listUsers.length > 1 && (
               <div>
@@ -813,7 +845,7 @@ const HomePage = () => {
                   type="text"
                   required
                   placeholder="Enter name group chat"
-                  className="px-2 border border-radius-4 border-black h-6 rounded-lg outline-none"
+                  className="px-2 py-2 border border-radius-4 border-black h-6 rounded-md outline-none"
                   onChange={(e) => {
                     setChannelName(e.target.value);
                   }}
@@ -826,9 +858,9 @@ const HomePage = () => {
               </span>
             )}
           </div>
-          <div className="w-full h-24 px-2 py-2 border-t-slate-200 ">
+          <div className="w-full h-20 px-2 py-2 border-t-slate-200 ">
             <button
-              className={`w-full h-full bg-[#8090CB] hover:opacity-60 text-white font-semibold rounded-lg flex items-center justify-center`}
+              className={`w-full h-12 bg-[#8090CB] hover:opacity-60 text-white font-semibold rounded-lg flex items-center justify-center`}
               onClick={() => {
                 if (channelName.trim() === "") {
                   if (listUsers.length == 1) {

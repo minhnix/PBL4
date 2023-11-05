@@ -15,7 +15,7 @@ const Avatar = (props) => {
     "#795548",
     "#ffc107",
   ];
-  let name = props.name.trim().slice(0, 30);
+  let name = props.name?.trim().slice(0, 30);
   var hash = 0;
   for (var i = 0; i < name?.length; i++) {
     hash = 31 * hash + name?.charCodeAt(i);
