@@ -3,6 +3,7 @@ import SignIn from "./pages/SignIn";
 import HomePage from "./pages/HomePage";
 import { StompProvider } from "usestomp-hook/lib";
 import { config } from "./config/websocket.config";
+import Videos from "./components/VideoCallVideos";
 
 function App() {
   return (
@@ -17,7 +18,8 @@ function App() {
           }
         />
         <Route path="/signin" element={<SignIn />} />
-        <Route path="/messages" element={<SignIn />} />
+        {/* <Route path="/messages" element={<SignIn />} /> */}
+        <Route path="/video" element={<Videos />} />
       </Routes>
     </>
   );

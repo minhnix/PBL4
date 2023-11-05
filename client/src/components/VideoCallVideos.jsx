@@ -3,7 +3,12 @@ import firebase from "firebase/app";
 import "firebase/firestore";
 import HangupIcon from "../icons/hangup";
 import { useLocation } from "react-router-dom";
-
+import {
+  BsFillMicFill,
+  BsFillMicMuteFill,
+  BsCameraVideoOff,
+  BsCameraVideo,
+} from "react-icons/bs";
 const firebaseConfig = {
   apiKey: "AIzaSyCJ7fVBTbRtfnM1Sd01W6ib1suxk_dmvd8",
   authDomain: "fir-rtc-14328.firebaseapp.com",
@@ -68,6 +73,7 @@ const Videos = ({ setPage }) => {
       const offerCandidates = callDoc.collection("offerCandidates");
       const answerCandidates = callDoc.collection("answerCandidates");
       window.history.pushState({}, null, `/video/${callDoc.id}`);
+      //TODO : send callID to server/firebase
       console.log({
         offerId: "user1id",
         answerId: "user2id",
@@ -151,6 +157,8 @@ const Videos = ({ setPage }) => {
 
   const hangUp = async () => {
     pc.close();
+    // localstorage
+    localStorage.removeItem("callId");
     if (roomId) {
       let roomRef = firestore.collection("calls").doc(roomId);
       await roomRef
@@ -307,7 +315,13 @@ const Videos = ({ setPage }) => {
           <div className="modal">
             <h3>Turn on your camera and microphone and start the call</h3>
             <div className="container">
-              <button onClick={() => setPage("home")} className="secondary">
+              <button
+                onClick={() => {
+                  window.close();
+                  setPage("home");
+                }}
+                className="secondary"
+              >
                 Cancel
               </button>
               <button onClick={setupSources}>Start</button>

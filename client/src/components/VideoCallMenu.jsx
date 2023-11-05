@@ -24,7 +24,7 @@ const Menu = ({ setPage, isDarkTheme, isAnswer, setIsAnswer }) => {
               setPage("create");
             }}
             size={20}
-          />  
+          />
         </button>
       ) : (
         // Khi có cuộc gọi
@@ -34,8 +34,10 @@ const Menu = ({ setPage, isDarkTheme, isAnswer, setIsAnswer }) => {
               size={18}
               className="text-green-500"
               onClick={() => {
+                // TODO: get callId from firebase
+                const callId = "Jv64hB17xbrEU8pJYuDZ";
                 window.open(
-                  "http://localhost:5173/video/?mode=join&callId=YV6vvbn0O7PyxZxxVsh6",
+                  `http://localhost:5173/video/?mode=join&callId=${callId}`,
                   "_blank",
                   "rel=noopener noreferrer"
                 );
@@ -55,7 +57,9 @@ const Menu = ({ setPage, isDarkTheme, isAnswer, setIsAnswer }) => {
             <AiOutlineClose
               size={18}
               className="text-red-500"
-              onClick={setIsAnswer}
+              onClick={() => {
+                setIsAnswer();
+              }}
             />
           </button>
         </>
