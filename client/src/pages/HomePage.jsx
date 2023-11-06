@@ -1,13 +1,7 @@
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-} from "react";
+import { useRef, useState, useEffect, useContext, useCallback } from "react";
 import axios from "axios";
-import RecievedCallPopup from "../components/RecievedCallPopUp";
-import Menu from "../components/VideoCallMenu";
+import ReceivedCallPopup from "../components/ReceivedCallPopUp";
+import VideoCallButton from "../components/VideoCallButton";
 import { BiMenu } from "react-icons/bi";
 import Loader from "../components/Loader";
 import Avatar from "../components/Avatar";
@@ -18,7 +12,6 @@ import ChatItem from "../components/ChatItem";
 import { useNavigate } from "react-router-dom";
 import { RiSendPlaneFill } from "react-icons/ri";
 import { useAuth } from "../context/auth.context";
-import { BsCameraVideoFill } from "react-icons/bs";
 import MessageSend from "../components/MessageSend";
 import { PiUserCirclePlusLight } from "react-icons/pi";
 import MessageCenter from "../components/MessageCenter";
@@ -43,7 +36,6 @@ const HomePage = () => {
   } = useMessage();
   const navigate = useNavigate();
   const chatContentRef = useRef(null);
-  const [status, setStatus] = useState("");
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isShowMenu, setIsShowMenu] = useState(false);
   const [isShowAddPopup, setIsShowAddPopup] = useState(false);
@@ -79,6 +71,12 @@ const HomePage = () => {
   const [renderMessages, setRenderMessages] = useState([]);
   const inputRef = useRef();
   const [inputValue, setInputValue] = useState("");
+  const [receivedCall, setReceivedCall] = useState(false);
+  const [receivedCallUser, setReceivedCallUser] = useState({
+    callId: null,
+    name: null,
+    sendTo: null,
+  });
 
   const fetchMessage = useCallback(async () => {
     if (isLoading) return;
@@ -330,26 +328,20 @@ const HomePage = () => {
     }
   }, []);
 
-  const subscribe = (client, path) => {
-    client.subscribe(
-      path,
-      ({ body }) => {
-        const message = JSON.parse(body);
-        if (message.type == "CREATE") {
-          const path = "/topic/group/" + message.channelId;
-          subscribe(client, path);
-        }
-        setNewMessage(message);
-      },
-      {
-        Authorization: "Bearer " + token,
+  const subscribeChat = (client, path) => {
+    client.subscribe(path, ({ body }) => {
+      const message = JSON.parse(body);
+      if (message.type == "CREATE") {
+        const path = "/topic/group/" + message.channelId;
+        subscribeChat(client, path);
       }
-    );
+      setNewMessage(message);
+    });
   };
 
   const subscribeUserChatPM = (client) => {
     const path = `/user/${userLoggedIn.id}/pm`;
-    subscribe(client, path);
+    subscribeChat(client, path);
   };
 
   const getGroupsOfUser = async () => {
@@ -373,14 +365,32 @@ const HomePage = () => {
     if (groups == null) return;
     groups.forEach((group) => {
       const path = "/topic/group/" + group;
-      subscribe(client, path);
+      subscribeChat(client, path);
+    });
+  };
+
+  const subscribeUserVideoCall = (client) => {
+    const path = `/user/${userLoggedIn.id}/call`;
+    client.subscribe(path, ({ body }) => {
+      const message = JSON.parse(body);
+      console.log("🚀 ~ subscribeUserVideoCall ~ message:", message);
+      if (message.type == "CREATE") {
+        setReceivedCallUser({
+          name: message.sender.username,
+          callId: message.payload.callId,
+          sendTo: message.sender.userId,
+        });
+        setReceivedCall(true);
+      }
     });
   };
 
   useEffect(() => {
+    if (userLoggedIn == null) return;
     client.onConnect = () => {
       subscribeUserChatPM(client);
       subscribeGroupChat(client);
+      subscribeUserVideoCall(client);
     };
   }, [client]);
 
@@ -398,10 +408,6 @@ const HomePage = () => {
 
   useEffect(() => {
     if (userLoggedIn == null) window.location.reload();
-    console.log(
-      "🚀 ~ file: HomePage.jsx:398 ~ useEffect ~ userLoggedIn:",
-      userLoggedIn
-    );
     fetchData();
 
     document.addEventListener("mousemove", handleOnlineStatus);
@@ -439,23 +445,22 @@ const HomePage = () => {
   }, []);
   // Video call
 
-  const [currentPage, setCurrentPage] = useState("home");
-  const [isAnswer, setAnswer] = useState(true);
-
   const handleCloseCallPopup = () => {
-    setAnswer(false);
+    setReceivedCall(false);
   };
 
   //end
   if (token == null) return <div></div>;
   return (
     <>
-      <RecievedCallPopup
-        name={"Buoi Hoang Minh"}
-        callId={"Jv64hB17xbrEU8pJYuDZ"}
-        status={status}
-        setStatus={setStatus}
-      />
+      {receivedCall && (
+        <ReceivedCallPopup
+          name={receivedCallUser.name}
+          callId={receivedCallUser.callId}
+          sendTo={receivedCallUser.sendTo}
+          handleClose={handleCloseCallPopup}
+        />
+      )}
       <div className={`${isDarkTheme && "dark"}`}>
         <div
           className={`w-full h-screen bg-[#ECF0F3]  flex items-center duration-300 transition-all dark:bg-[#1A1D24]`}
@@ -654,10 +659,10 @@ const HomePage = () => {
                   >
                     {/* <BsCameraVideoFill size={20} /> */}
                     <div className="w-[40px] flex items-center justify-center">
-                      <Menu
-                        setPage={setCurrentPage}
+                      <VideoCallButton
                         isDarkTheme={isDarkTheme}
-                        isAnswer={false}
+                        channelId={currentChannel.id}
+                        sendTo={currentChannel.userId}
                       />
                     </div>
                   </button>

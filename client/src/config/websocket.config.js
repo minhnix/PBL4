@@ -8,9 +8,9 @@ export const config = {
   reconnectDelay: 500,
   heartbeatOutgoing: 5000,
   heartbeatIncoming: 0,
-  // debug: function (str) {
-  //   console.log("STOMP DEBUG: " + str);
-  // },
+  debug: function (str) {
+    console.log("STOMP DEBUG: " + str);
+  },
   onStompError: function (err) {
     console.error(err);
   },
