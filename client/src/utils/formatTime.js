@@ -11,11 +11,11 @@ export const calculateTimeDifference = (epochTimestamp) => {
   );
 
   if (daysDifference > 0) {
-    return `${daysDifference} d ago`;
+    return `${daysDifference} d `;
   } else if (hoursDifference > 0) {
-    return `${hoursDifference} h ago`;
+    return `${hoursDifference} h `;
   } else if (minutesDifference > 1) {
-    return `${minutesDifference} m ago`;
+    return `${minutesDifference} m `;
   } else {
     return "now";
   }

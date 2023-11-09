@@ -47,13 +47,13 @@ const VideoCallButton = ({ isDarkTheme, channelId, sendTo }) => {
   return (
     <>
       <button
-        className={` w-[40px] h-[40px] rounded-full cursor-pointer feature-btn ${
+        className={` w-[60px] h-[60px] rounded-full cursor-pointer feature-btn ${
           isDarkTheme
             ? "float-neumorphism-chat-dark feature-btn-dark"
             : "float-neumorphism-chat feature-btn"
         } flex items-center justify-center text-[#495FB8]`}
       >
-        <BsCameraVideoFill onClick={handleClickButton} size={20} />
+        <BsCameraVideoFill onClick={handleClickButton} size={32} />
       </button>
     </>
   );

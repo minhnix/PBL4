@@ -6,7 +6,7 @@ const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo }) => {
   return (
     <div className={`absolute top-0 z-40 left-0 bg-black/30 w-full h-full`}>
       <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]  rounded shadow-xl flex justify-evenly items-center px-4">
-        <div className="relative w-[400px] h-[250px] flex flex-col gap-4 pt-4 bg-gray-200 items-center justify-center rounded-md">
+        <div className="relative w-[400px] h-[270px] flex flex-col gap-4 pt-4 bg-gray-200 items-center justify-center rounded-lg">
           <div className="text-black text-sm absolute top-2 right-2 w-6 h-6 rounded-full hover:opacity-60 cursor-pointer bg-slate-300 items-center justify-center flex">
             <AiOutlineClose
               className="m-auto"
@@ -19,22 +19,22 @@ const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo }) => {
           <p className="mt-[-12px]">
             The call will start as soon as you accept.
           </p>
-          <div className="flex gap-6">
+          <div className="flex my-2 gap-6">
             <div className="flex flex-col gap-2 items-center">
-              <button className="w-10 h-10 rounded-full border-2 border-red-300 flex items-center justify-center hover:opacity-60">
+              <button className="w-12 h-12 rounded-full border-2 bg-red-500 flex items-center justify-center hover:opacity-70">
                 <AiOutlineClose
                   size={18}
-                  className="text-red-500"
+                  className="text-white "
                   onClick={handleClose}
                 />
               </button>
-              <p className="text-sm">Decline</p>
+              <p className="text-sm font-bold text-red-600">Decline</p>
             </div>
             <div className="flex flex-col gap-2 items-center">
-              <button className="w-10 h-10 rounded-full border-2 border-green-200 flex items-center justify-center hover:opacity-60">
+              <button className="w-12 h-12 rounded-full border-2 bg-green-500 flex items-center justify-center hover:opacity-70">
                 <IoCall
                   size={18}
-                  className="text-green-500"
+                  className=" text-white"
                   onClick={() => {
                     handleClose();
                     window.open(
@@ -45,7 +45,7 @@ const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo }) => {
                   }}
                 />
               </button>
-              <p className="text-sm">Accept</p>
+              <p className="text-sm font-bold text-green-500 ">Accept</p>
             </div>
           </div>
         </div>

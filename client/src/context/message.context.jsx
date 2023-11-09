@@ -54,13 +54,14 @@ const MessageProvider = (props) => {
   };
 
   const value = {
-    token,
-    userLoggedIn,
-    fetchData,
     data,
-    reArrangeUsersOnMessageSend,
+    token,
+    setData,
+    fetchData,
     newMessage,
+    userLoggedIn,
     setNewMessage,
+    reArrangeUsersOnMessageSend,
   };
 
   return (
