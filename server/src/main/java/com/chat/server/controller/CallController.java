@@ -8,6 +8,7 @@ import com.chat.server.payload.request.CallRequest;
 import com.chat.server.security.CurrentUser;
 import com.chat.server.security.CustomUserDetails;
 import com.chat.server.service.CallService;
+import com.chat.server.service.scheduler.TimeOutCallScheduler;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -23,6 +24,7 @@ import java.util.Optional;
 public class CallController {
     private final CallService callService;
     private final SimpMessagingTemplate template;
+    private final TimeOutCallScheduler timeOutCallScheduler;
 
     @MessageMapping("/call/pm")
     public void handleCall(@Payload CallMessage callMessage) {
@@ -32,13 +34,20 @@ public class CallController {
             if (call.getStatus().equals("JOIN")) {
                 callMessage.setType(CallMessage.Type.JOIN);
             }
+            timeOutCallScheduler.apply(callMessage.getPayload().getCallId(),
+                    callMessage.getType(),
+                    callMessage.getSender().getUserId(),
+                    callMessage.getSendTo());
             template.convertAndSendToUser(callMessage.getSendTo(), "/call", callMessage);
         } else if (callMessage.getType().equals(CallMessage.Type.JOIN)) {
+            timeOutCallScheduler.apply(callMessage.getPayload().getCallId(),
+                    callMessage.getType(),
+                    callMessage.getSender().getUserId(),
+                    callMessage.getSendTo());
             template.convertAndSendToUser(callMessage.getSendTo(), "/call", callMessage);
         } else if (callMessage.getType().equals(CallMessage.Type.CANCEL)) {
             template.convertAndSendToUser(callMessage.getSendTo(), "/call", callMessage);
-        } else {
-
+            template.convertAndSendToUser(callMessage.getSender().getUserId(), "/call", callMessage);
         }
     }
 
@@ -58,6 +67,7 @@ public class CallController {
         if (user == null) throw new ForbiddenException("Access denied");
         if (!user.getId().equals(callRequest.getSender().getUserId()))
             throw new ForbiddenException("Access denied");
+        //TODO: CREATE 2 call -> error
         return callService.create(callRequest.getSendTo(), callRequest.getSender(), callRequest.getPayload());
     }
 
