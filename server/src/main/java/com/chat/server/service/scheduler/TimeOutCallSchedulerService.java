@@ -30,8 +30,9 @@ public class TimeOutCallSchedulerService implements TimeOutCallScheduler {
     }
 
     @Override
-    public void apply(String callId, CallMessage.Type type, String callerId, String answerId) {
-        if (type == CallMessage.Type.CREATE) {
+    public void apply(CallMessage callMessage) {
+        String callId = callMessage.getPayload().getCallId();
+        if (callMessage.getType() == CallMessage.Type.CREATE) {
             callStartTimes.put(callId, System.currentTimeMillis());
             ScheduledFuture<?> task = tasks.get(callId);
             if (task == null) {
@@ -39,13 +40,13 @@ public class TimeOutCallSchedulerService implements TimeOutCallScheduler {
                     callService.delete(callId);
                     //TODO: save message
                     //TODO: remove useless delete api (duplicate api call)
-                    sendCancelMessage(callerId, answerId);
+                    sendCancelMessage(callMessage);
                 }, Instant.now().plusMillis(MAX_IDLE_TIME));
                 tasks.put(callId, task);
             } else {
                 task.cancel(false);
             }
-        } else if (type == CallMessage.Type.JOIN) {
+        } else if (callMessage.getType() == CallMessage.Type.JOIN) {
             ScheduledFuture<?> task = tasks.get(callId);
             if (task != null) task.cancel(false);
             tasks.remove(callId);
@@ -53,10 +54,9 @@ public class TimeOutCallSchedulerService implements TimeOutCallScheduler {
         }
     }
 
-    private void sendCancelMessage(String callerId, String answerId) {
-        CallMessage callMessage = new CallMessage();
+    private void sendCancelMessage(CallMessage callMessage) {
         callMessage.setType(CallMessage.Type.CANCEL);
-        simpMessagingTemplate.convertAndSendToUser(callerId, "/call", callMessage);
-        simpMessagingTemplate.convertAndSendToUser(answerId, "/call", callMessage);
+        simpMessagingTemplate.convertAndSendToUser(callMessage.getSender().getUserId(), "/call", callMessage);
+        simpMessagingTemplate.convertAndSendToUser(callMessage.getSendTo(), "/call", callMessage);
     }
 }

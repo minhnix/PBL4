@@ -29,22 +29,18 @@ public class CallController {
     @MessageMapping("/call/pm")
     public void handleCall(@Payload CallMessage callMessage) {
         log.info(callMessage.toString());
+        String callId = callMessage.getPayload().getCallId();
         if (callMessage.getType().equals(CallMessage.Type.CREATE)) {
-            Call call = callService.findById(callMessage.getPayload().getCallId()).get();
+            Call call = callService.findById(callId).get();
             if (call.getStatus().equals("JOIN")) {
                 callMessage.setType(CallMessage.Type.JOIN);
             }
-            timeOutCallScheduler.apply(callMessage.getPayload().getCallId(),
-                    callMessage.getType(),
-                    callMessage.getSender().getUserId(),
-                    callMessage.getSendTo());
+            timeOutCallScheduler.apply(callMessage);
             template.convertAndSendToUser(callMessage.getSendTo(), "/call", callMessage);
         } else if (callMessage.getType().equals(CallMessage.Type.JOIN)) {
-            timeOutCallScheduler.apply(callMessage.getPayload().getCallId(),
-                    callMessage.getType(),
-                    callMessage.getSender().getUserId(),
-                    callMessage.getSendTo());
+            timeOutCallScheduler.apply(callMessage);
             template.convertAndSendToUser(callMessage.getSendTo(), "/call", callMessage);
+            cancelAllCallCreateWhenJoin(callId, callMessage);
         } else if (callMessage.getType().equals(CallMessage.Type.CANCEL)) {
             template.convertAndSendToUser(callMessage.getSendTo(), "/call", callMessage);
             template.convertAndSendToUser(callMessage.getSender().getUserId(), "/call", callMessage);
@@ -67,7 +63,6 @@ public class CallController {
         if (user == null) throw new ForbiddenException("Access denied");
         if (!user.getId().equals(callRequest.getSender().getUserId()))
             throw new ForbiddenException("Access denied");
-        //TODO: CREATE 2 call -> error
         return callService.create(callRequest.getSendTo(), callRequest.getSender(), callRequest.getPayload());
     }
 
@@ -86,12 +81,17 @@ public class CallController {
         callService.delete(callId);
     }
 
-//    private String handleCreateMessageCall(CallMessage callMessage) {
-//        if (callService.findByChannelId(callMessage.getPayload().getChannelId()).isEmpty()) {
-//            return callService.create(callMessage)
-//                    .getId();
-//        } else {
-//            return null;
-//        }
-//    }
+    private void cancelAllCallCreateWhenJoin(String callId, CallMessage callMessage) {
+        callMessage.setType(CallMessage.Type.CANCEL);
+        Call call = callService.findByUserAndNotCallId(callMessage.getSendTo(), callId);
+        if (call != null) {
+            callMessage.getPayload().setCallId(call.getId());
+            template.convertAndSendToUser(callMessage.getSendTo(), "/call", callMessage);
+        }
+        Call call1 = callService.findByUserAndNotCallId(callMessage.getSender().getUserId(), callId);
+        if (call1 != null) {
+            callMessage.getPayload().setCallId(call1.getId());
+            template.convertAndSendToUser(callMessage.getSender().getUserId(), "/call", callMessage);
+        }
+    }
 }

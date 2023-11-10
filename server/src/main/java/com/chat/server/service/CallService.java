@@ -16,4 +16,6 @@ public interface CallService {
     Optional<Call> findById(String id);
 
     void delete(String id);
+
+    Call findByUserAndNotCallId(String userId, String callId);
 }

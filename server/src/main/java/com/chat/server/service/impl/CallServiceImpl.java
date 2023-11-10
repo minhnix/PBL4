@@ -1,5 +1,6 @@
 package com.chat.server.service.impl;
 
+import com.chat.server.exception.BadRequestException;
 import com.chat.server.exception.UserCallingException;
 import com.chat.server.model.Call;
 import com.chat.server.model.UserWithUsername;
@@ -7,12 +8,14 @@ import com.chat.server.payload.request.CallRequest;
 import com.chat.server.repository.CallRepository;
 import com.chat.server.service.CallService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class CallServiceImpl implements CallService {
     private final CallRepository callRepository;
 
@@ -31,6 +34,9 @@ public class CallServiceImpl implements CallService {
             call.get().setStatus("JOIN");
             return callRepository.save(call.get());
         } else {
+            if (callRepository.findByUserId(sender.getUserId()) != null) {
+                throw new BadRequestException("You are calling");
+            }
             Call call1 = new Call();
             call1.setChannelId(callRequest.getChannelId());
             call1.setSender(sender);
@@ -56,6 +62,7 @@ public class CallServiceImpl implements CallService {
         }
         if (callRequest.getAnswerDescription() != null) {
             call.setAnswerDescription(callRequest.getAnswerDescription());
+            call.setStatus("JOIN");
         }
         callRepository.save(call);
     }
@@ -68,5 +75,10 @@ public class CallServiceImpl implements CallService {
     @Override
     public void delete(String id) {
         callRepository.deleteById(id);
+    }
+
+    @Override
+    public Call findByUserAndNotCallId(String userId, String callId) {
+        return callRepository.findByUserAndNotCallId(userId, callId);
     }
 }
