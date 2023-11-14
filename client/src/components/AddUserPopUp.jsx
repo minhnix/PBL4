@@ -45,6 +45,7 @@ const AddUserPopUp = ({
           type="text"
           placeholder="Search Username or Email"
           className={`outline-none placeholder-gray-500 w-full text-sm bg-transparent `}
+          value={searchUserText ? searchUserText : ""}
           onChange={(e) => {
             setSearchUserText(e.target.value);
             handleSearchUser(e.target.value, channelInfor);
@@ -78,6 +79,20 @@ const AddUserPopUp = ({
                   name="listUser"
                   id={item.username}
                   value={item}
+                  onClick={() => {
+                    const checkbox = document.querySelector(
+                      `#${item.username}`
+                    );
+                    if (checkbox && checkbox.checked == true) {
+                      checkbox.checked = false;
+                      setListUsersAdd(
+                        listUsersAdd.filter((user) => user.id != item.id)
+                      );
+                    } else {
+                      checkbox.checked = true;
+                      setListUsersAdd([...listUsersAdd, item]);
+                    }
+                  }}
                 />
               </div>
             ))}
@@ -92,6 +107,7 @@ const AddUserPopUp = ({
               addMember({
                 idChannel: item?.channelId,
                 idUser: listUsersAdd[i]?.id,
+                username: listUsersAdd[i]?.username,
               });
             }
             resetData();

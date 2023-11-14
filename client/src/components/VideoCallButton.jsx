@@ -53,7 +53,7 @@ const VideoCallButton = ({ isDarkTheme, channelId, sendTo }) => {
             : "float-neumorphism-chat feature-btn"
         } flex items-center justify-center text-[#495FB8]`}
       >
-        <BsCameraVideoFill onClick={handleClickButton} size={32} />
+        <BsCameraVideoFill onClick={handleClickButton} size={28} />
       </button>
     </>
   );

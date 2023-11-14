@@ -1,10 +1,11 @@
 import axios from "axios";
 import Avatar from "./Avatar";
 import AddUserPopUp from "./AddUserPopUp";
+import { GiExitDoor } from "react-icons/gi";
 import React, { useState, useEffect } from "react";
+import { MdOutlineMoreHoriz } from "react-icons/md";
+import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { calculateTimeDifference } from "../utils/formatTime";
-import { MdOutlineMoreHoriz, MdDeleteSweep } from "react-icons/md";
-
 const ChatItem = ({
   item,
   isDarkTheme,
@@ -14,11 +15,11 @@ const ChatItem = ({
   latestMessage,
   userLoggedIn,
   onClick,
+  setCurrentChannelId,
   leaveGroup,
   addMember,
 }) => {
-  const [isShowMenuChatItem, setIsShowMenuChatItem] = useState("hidden");
-
+  const [isShowMenuChatItem, setIsShowMenuChatItem] = useState(false);
   const [channelInfor, setChannelInfor] = useState(null);
   const [isShowSearchBox, setIsShowSearchBox] = useState(false);
   const [listUserToShow, setListUserToShow] = useState([]);
@@ -70,7 +71,7 @@ const ChatItem = ({
   return (
     <>
       <div
-        className={` w-full h-16 relative cursor-pointer ${
+        className={`relative w-full h-16 cursor-pointer ${
           isDarkTheme
             ? "float-neumorphism-chat-dark chat-item-dark"
             : "float-neumorphism-chat chat-item"
@@ -85,67 +86,54 @@ const ChatItem = ({
             )}
           </div>
           <div className="flex flex-col justify-between py-2">
-            <span className="font-semibold dark:text-white">
-              {name.slice(0, 20)}
-            </span>
+            <span className="font-semibold dark:text-white">{name}</span>
             <span className="text-gray-500 flex  gap-2 dark:text-white text-[13px]">
               <span>
-                {item.messageType == "CREATE"
-                  ? latestMessage
+                {item.messageType == "CREATE" ||
+                item.messageType == "JOIN" ||
+                item.messageType == "LEAVE" ||
+                !item.messageType
+                  ? latestMessage.slice(0, 25) + "..."
+                  : item.type == "group"
+                  ? userLoggedIn?.id == item.sender?.userId
+                    ? "You: " + latestMessage.slice(0, 15)
+                    : item.sender?.username + ": " + latestMessage.slice(0, 15)
                   : userLoggedIn?.id == item.sender?.userId
                   ? "You: " + latestMessage.slice(0, 15)
-                  : item.type == "group"
-                  ? item.sender?.username.length >= 15
-                    ? item.sender?.username.slice(0, 15) +
-                      "... : " +
-                      latestMessage.slice(0, 10)
-                    : item.sender?.username + ": " + latestMessage.slice(0, 10)
-                  : latestMessage.slice(0, 10)}
+                  : latestMessage.slice(0, 15)}
               </span>
 
               <span>{calculateTimeDifference(messageTime)}</span>
             </span>
           </div>
         </div>
-        <div className="h-10 w-10 bg-green-400 rounded-full flex items-center justify-center">
+        <div className="h-10 w-10 hover:bg-neutral-300  rounded-full flex items-center justify-center">
           <MdOutlineMoreHoriz
             size={20}
             className={`cursor-pointer dark:text-white`}
             onClick={(e) => {
               e.stopPropagation();
-              setIsShowMenuChatItem(
-                isShowMenuChatItem == "hidden" ? "block" : "hidden"
-              );
+              setCurrentChannelId(item.channelId);
+              setIsShowMenuChatItem(!isShowMenuChatItem);
             }}
           />
         </div>
-        {item.type == "group" && (
-          <div
-            className={`flex  justify-between  absolute w-[85%] h-full top-[50%] left-[0%]  translate-y-[-50%]   ${isShowMenuChatItem} rounded-xl ${
-              isDarkTheme ? " bg-slate-500" : " bg-white"
-            } `}
-          >
-            <div
-              className={`flex justify-center items-center border w-[49%] border-1   ${
-                isDarkTheme
-                  ? "float-neumorphism-chat-dark chat-item-dark bg-slate-500"
-                  : "float-neumorphism-chat chat-item bg-white"
-              } rounded-xl`}
+        {item.type == "group" && isShowMenuChatItem && (
+          <div className="absolute flex flex-col gap-4 items-start w-[60%] px-4 py-4 justify-between bg-white border border-gray-500/50 right-8 top-[65px] z-10 rounded-lg shadow-xl">
+            <button
+              className=" hover:font-bold flex gap-2 items-center text-base "
               onClick={(e) => {
                 e.stopPropagation();
                 setIsShowSearchBox(true);
-                setIsShowMenuChatItem("hidden");
+                setIsShowMenuChatItem(!isShowMenuChatItem);
+                handleGetInforChannel();
               }}
             >
-              <MdDeleteSweep size={20} className="" />
-              <p>Add member</p>
-            </div>
-            <div
-              className={`flex justify-center items-center border w-[49%] border-1   ${
-                isDarkTheme
-                  ? "float-neumorphism-chat-dark chat-item-dark bg-slate-500"
-                  : "float-neumorphism-chat chat-item bg-white"
-              } rounded-xl`}
+              <AiOutlineUsergroupAdd size={24} /> <span>Add new member</span>
+            </button>
+            <div className="h-[1px] w-[100%] bg-gray-500/50"></div>
+            <button
+              className="hover:font-bold flex gap-2 items-center text-base "
               onClick={(e) => {
                 e.stopPropagation();
                 item.type == "group" &&
@@ -153,12 +141,11 @@ const ChatItem = ({
                     idChannel: item?.channelId,
                     idUser: userLoggedIn?.id,
                   });
-                setIsShowMenuChatItem("hidden");
+                setIsShowMenuChatItem(!isShowMenuChatItem);
               }}
             >
-              <MdDeleteSweep size={20} className="" />
-              <p>Leave group</p>
-            </div>
+              <GiExitDoor size={24} /> <span>Leave Group</span>
+            </button>
           </div>
         )}
       </div>

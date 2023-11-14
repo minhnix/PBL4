@@ -87,6 +87,20 @@ const SearchUserPopUp = ({
                   name="listUser"
                   id={item.username + action}
                   value={item}
+                  onClick={() => {
+                    const checkbox = document.querySelector(
+                      `#${item.username + action}`
+                    );
+                    if (checkbox && checkbox.checked == true) {
+                      checkbox.checked = false;
+                      setListUsers(
+                        listUsers.filter((user) => user.id != item.id)
+                      );
+                    } else {
+                      checkbox.checked = true;
+                      setListUsers([...listUsers, item]);
+                    }
+                  }}
                 />
               </div>
             ))}

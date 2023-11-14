@@ -26,7 +26,7 @@ const HomePage = () => {
   const { logout } = useAuth();
   const token = localStorage.getItem("token");
   const client = useContext(StompContext).stompClient;
-  const { send } = useStomp();
+  const { send, subscribe, unsubscribe } = useStomp();
   const {
     data,
     setData,
@@ -61,6 +61,7 @@ const HomePage = () => {
     messageTime: "",
     userId: null,
   });
+  const [currentChannelId, setCurrentChannelId] = useState("");
   //all channels haven't messages
   const [allChannels, setAllChannels] = useState([]);
   //all users
@@ -240,13 +241,16 @@ const HomePage = () => {
   };
 
   const handleLeaveGroup = async (body) => {
+    handleSendNotificationRemoveMember(body);
+    unsubscribe("/topic/group/" + body?.idChannel);
     try {
       const res = await axios.delete(
         "http://localhost:8080/api/v1/channels/removeUser",
         {
-          data: body, 
+          data: body,
         }
       );
+      handleResetData();
       fetchData();
     } catch (err) {
       console.log("🚀 ~ file: HomePage.jsx:213 ~ handleLeaveGroup ~ err:", err);
@@ -259,6 +263,8 @@ const HomePage = () => {
         "http://localhost:8080/api/v1/channels/addUser",
         body
       );
+      handleSendNotificationAddMember(body);
+      fetchData();
     } catch (err) {
       console.log("🚀 ~ file: HomePage.jsx:213 ~ handleLeaveGroup ~ err:", err);
     }
@@ -299,6 +305,39 @@ const HomePage = () => {
     }
   };
 
+  const handleSendNotificationAddMember = (user) => {
+    const newSendMessage = {
+      position: "right",
+      type: "JOIN",
+      content: user.username + " joined group",
+      sender: {
+        userId: userLoggedIn?.id,
+        username: userLoggedIn?.username,
+      },
+      sendTo: user.idUser ? user.idUser : null,
+      channelId: currentChannelId,
+    };
+    send(`/app/chat/group/${currentChannelId}`, newSendMessage, {});
+
+    fetchData();
+    scrollToBottom();
+  };
+  const handleSendNotificationRemoveMember = (user) => {
+    const newSendMessage = {
+      position: "right",
+      type: "LEAVE",
+      content: userLoggedIn.username + " leaved group",
+      sender: {
+        userId: userLoggedIn?.id,
+        username: userLoggedIn?.username,
+      },
+      sendTo: currentChannelId ? currentChannelId : null,
+      channelId: currentChannelId,
+    };
+    scrollToBottom();
+    send(`/app/chat/group/${currentChannelId}`, newSendMessage, {});
+  };
+
   const handleChatItemClick = (
     isOnline,
     name,
@@ -327,12 +366,6 @@ const HomePage = () => {
     }
   };
 
-  const handleSearch = (e) => {
-    if (e.key === "Enter") {
-      handleGetAllChannelCreated(searchChannelText);
-    }
-  };
-
   const handleResetData = () => {
     setRenderMessages([]);
     setCurrentChannel({
@@ -352,20 +385,29 @@ const HomePage = () => {
     }
   }, []);
 
-  const subscribeChat = (client, path) => {
-    client.subscribe(path, ({ body }) => {
-      const message = JSON.parse(body);
-      if (message.type == "CREATE") {
-        const path = "/topic/group/" + message.channelId;
-        subscribeChat(client, path);
-      }
-      setNewMessage(message);
-    });
+  const subscribeChat = (message) => {
+    if (message.type == "CREATE") {
+      const path = "/topic/group/" + message.channelId;
+      subscribe(path, subscribeChat);
+    }
+    setNewMessage(message);
   };
 
-  const subscribeUserChatPM = (client) => {
+  const subscribeUserChatPM = () => {
     const path = `/user/${userLoggedIn.id}/pm`;
-    subscribeChat(client, path);
+    subscribe(path, subscribeChat);
+  };
+
+  const subscribeNewGroup = () => {
+    const path = `/user/${userLoggedIn.id}/join-group`;
+    const callback = (message) => {
+      if (message.type == "JOIN") {
+        const path = "/topic/group/" + message.channelId;
+        subscribe(path, subscribeChat);
+        fetchData();
+      }
+    };
+    subscribe(path, callback);
   };
 
   const getGroupsOfUser = async () => {
@@ -384,19 +426,18 @@ const HomePage = () => {
     }
   };
 
-  const subscribeGroupChat = async (client) => {
+  const subscribeGroupChat = async () => {
     const groups = await getGroupsOfUser();
     if (groups == null) return;
     groups.forEach((group) => {
       const path = "/topic/group/" + group;
-      subscribeChat(client, path);
+      subscribe(path, subscribeChat);
     });
   };
 
-  const subscribeUserVideoCall = (client) => {
+  const subscribeUserVideoCall = () => {
     const path = `/user/${userLoggedIn.id}/call`;
-    client.subscribe(path, ({ body }) => {
-      const message = JSON.parse(body);
+    const callback = function (message) {
       if (message.type == "CREATE") {
         setReceivedCallUser({
           name: message.sender.username,
@@ -404,24 +445,31 @@ const HomePage = () => {
           sendTo: message.sender.userId,
         });
         setReceivedCall(true);
+      } else if (message.type == "CANCEL" || message.type == "STOP") {
+        setReceivedCall(false);
       }
-    });
+    };
+    subscribe(path, callback);
   };
 
   useEffect(() => {
     if (userLoggedIn == null) return;
     client.onConnect = () => {
-      subscribeUserChatPM(client);
-      subscribeGroupChat(client);
-      subscribeUserVideoCall(client);
+      subscribeUserChatPM();
+      subscribeGroupChat();
+      subscribeUserVideoCall();
       sendStatusToServer();
+      subscribeNewGroup();
     };
   }, [client]);
 
   useEffect(() => {
     if (newMessage == null) return;
     reArrangeUsersOnMessageSend(newMessage.channelId, newMessage);
-    if (newMessage.channelId === currentChannel.id) {
+    if (
+      newMessage.channelId === currentChannel.id ||
+      newMessage.channelId == currentChannelId
+    ) {
       setRenderMessages((pre) => [newMessage, ...pre]);
     }
   }, [newMessage]);
@@ -596,12 +644,11 @@ const HomePage = () => {
                     placeholder="Search Messenger"
                     className={`text-gray-700 placeholder-[#495FB8] dark:text-white bg-transparent text-md outline-none`}
                     onChange={(e) => handleGetAllChannelCreated(e)}
-                    // onKeyDown={(e) => handleSearch(e)}
                   ></input>
                 </div>
               </div>
               <div
-                className={`flex flex-col z-10 gap-3 h-full overflow-x-hidden overflow-y-auto no-scrollbar w-full bg-transparent ${
+                className={`flex flex-col z-10 gap-3 h-full overflow-x-hidden overflow-y-auto no-scrollbar w-full ${
                   isDarkTheme && "deep-neumorphism-dark"
                 } deep-neumorphism rounded-xl px-2 py-3`}
               >
@@ -648,6 +695,7 @@ const HomePage = () => {
                             item?.userId
                           );
                         }}
+                        setCurrentChannelId={setCurrentChannelId}
                         leaveGroup={handleLeaveGroup}
                         addMember={handleAddMember}
                       />
@@ -731,7 +779,9 @@ const HomePage = () => {
                 >
                   {currentChannel.name != "" ? (
                     renderMessages?.map((message) =>
-                      message.type == "CREATE" ? (
+                      message.type == "CREATE" ||
+                      message.type == "JOIN" ||
+                      message.type == "LEAVE" ? (
                         <MessageCenter
                           key={message?.id}
                           messageType={message?.type}

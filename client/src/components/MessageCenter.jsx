@@ -5,7 +5,7 @@ const MessageCenter = ({ messagetypeType, content, isDarkTheme }) => {
     <div
       className={`mx-auto ${
         isDarkTheme && "text-white"
-      } text-bold text-md border-b-2 border-gray-400 dark:border-gray-700`}
+      } text-bold text-md  dark:border-gray-700`}
     >
       <p>{content}</p>
     </div>

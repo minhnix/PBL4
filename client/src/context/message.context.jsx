@@ -44,7 +44,7 @@ const MessageProvider = (props) => {
         sender: newMessage?.sender,
         latestMessage: newMessage.content,
         createdAt: newMessage.createdAt,
-        messageType: newMessage.messageType,
+        messageType: newMessage.messageType || newMessage.type,
       };
       data.unshift(targetUser);
       setData([...data]);

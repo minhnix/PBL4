@@ -178,6 +178,8 @@ export const SignUp = () => {
 
   const handlerReset = () => {
     document.querySelectorAll("input")?.forEach((item) => (item.value = ""));
+    const container = document.querySelector(".box");
+    container.classList.toggle("right-panel-active");
   };
   return (
     <div className="box">
