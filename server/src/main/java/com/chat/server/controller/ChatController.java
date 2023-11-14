@@ -23,13 +23,12 @@ public class ChatController {
 
     @MessageMapping("/chat/pm")
     public void handlePrivateMessage(@Payload ChatMessage chatMessage, UserPrincipal principal) {
-        log.info("client send chat: {}", chatMessage);
-        if (!principal.getName().equals(chatMessage.getSender().getUserId())) throw new ForbiddenException("Access denied");
+        if (!principal.getName().equals(chatMessage.getSender().getUserId()))
+            throw new ForbiddenException("Access denied");
         chatMessage.setSender(new UserWithUsername(
                 principal.getName(),
                 principal.getUsername()
         ));
-        chatMessage.setType(ChatMessage.Type.MESSAGE);
 
         Message message = messageService.saveMessage(chatMessage);
         template.convertAndSendToUser(chatMessage.getSendTo(), "/pm", message);
@@ -37,15 +36,16 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/group/{groupId}")
-    public void handleGroupMessage(@DestinationVariable String groupId,@Payload ChatMessage chatMessage, UserPrincipal principal) {
-        log.info("client send to group: {}", chatMessage);
-        if (!principal.getName().equals(chatMessage.getSender().getUserId())) throw new ForbiddenException("Access denied");
+    public void handleGroupMessage(@DestinationVariable String groupId, @Payload ChatMessage chatMessage, UserPrincipal principal) {
+        if (!principal.getName().equals(chatMessage.getSender().getUserId()))
+            throw new ForbiddenException("Access denied");
         chatMessage.setSender(new UserWithUsername(
                 principal.getName(),
                 principal.getUsername()
         ));
-        chatMessage.setType(ChatMessage.Type.MESSAGE);
-
+        if (chatMessage.getType() == ChatMessage.Type.JOIN) {
+            template.convertAndSendToUser(chatMessage.getSendTo(), "/join-group", chatMessage);
+        }
         Message message = messageService.saveMessage(chatMessage);
         template.convertAndSend("/topic/group/" + groupId, message);
     }
