@@ -15,7 +15,7 @@ const Avatar = (props) => {
     "#795548",
     "#ffc107",
   ];
-  let name = props.name.trim().slice(0, 30);
+  let name = props.name?.trim().slice(0, 30);
   var hash = 0;
   for (var i = 0; i < name?.length; i++) {
     hash = 31 * hash + name?.charCodeAt(i);
@@ -23,7 +23,7 @@ const Avatar = (props) => {
   var index = Math.abs(hash % colors.length);
   return (
     <div
-      className={`h-10 w-10 rounded-full relative `}
+      className={`h-12 w-12 rounded-full relative `}
       style={{
         background: colors[index],
       }}

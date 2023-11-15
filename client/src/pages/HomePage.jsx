@@ -1,38 +1,35 @@
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-} from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/auth.context";
-import { BiMenu } from "react-icons/bi";
-import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
-import ChatItem from "../components/ChatItem";
-import { GiExitDoor } from "react-icons/gi";
-import { BsCameraVideoFill } from "react-icons/bs";
-import { PiUserCirclePlusLight } from "react-icons/pi";
-import { RiSendPlaneFill } from "react-icons/ri";
-import ChatInfo from "../components/ChatInfo";
-import ChatSearchItem from "../components/ChatSearchItem";
+import { useRef, useState, useEffect, useContext, useCallback } from "react";
 import axios from "axios";
-import Avatar from "../components/Avatar";
-import { useMessage } from "../context/message.context";
-import { StompContext } from "usestomp-hook/lib/Provider";
-import { useStomp } from "usestomp-hook/lib";
+import { BiMenu } from "react-icons/bi";
 import Loader from "../components/Loader";
-import MessageCenter from "../components/MessageCenter";
+import Avatar from "../components/Avatar";
+import { GiExitDoor } from "react-icons/gi";
+import { useStomp } from "usestomp-hook/lib";
+import ChatInfo from "../components/ChatInfo";
+import ChatItem from "../components/ChatItem";
+import { useNavigate } from "react-router-dom";
+import { RiSendPlaneFill } from "react-icons/ri";
+import { useAuth } from "../context/auth.context";
 import MessageSend from "../components/MessageSend";
+import { PiUserCirclePlusLight } from "react-icons/pi";
+import MessageCenter from "../components/MessageCenter";
+import { useMessage } from "../context/message.context";
+import ChatSearchItem from "../components/ChatSearchItem";
+import SearchUserPopUp from "../components/SearchUserPopUp";
+import { StompContext } from "usestomp-hook/lib/Provider";
+import VideoCallButton from "../components/VideoCallButton";
 import MessageReceived from "../components/MessageReceived";
+import ReceivedCallPopup from "../components/ReceivedCallPopUp";
+import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 
 const HomePage = () => {
   const { logout } = useAuth();
   const token = localStorage.getItem("token");
   const client = useContext(StompContext).stompClient;
-  const { send } = useStomp();
+  const { send, subscribe, unsubscribe } = useStomp();
   const {
     data,
+    setData,
     fetchData,
     reArrangeUsersOnMessageSend,
     userLoggedIn,
@@ -41,12 +38,13 @@ const HomePage = () => {
   } = useMessage();
   const navigate = useNavigate();
   const chatContentRef = useRef(null);
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isShowMenu, setIsShowMenu] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isShowAddPopup, setIsShowAddPopup] = useState(false);
   //Search infor
-  const [searchChannelText, setSearchChannelText] = useState("");
   const [searchUserText, setSearchUserText] = useState("");
+  const [searchChannelText, setSearchChannelText] = useState("");
+  const [isShowAddMemberPopUp, setIsShowAddMemberPopUp] = useState(false);
   //Fetch mesasge
   const loaderRef = useRef(null);
   const [size, setSize] = useState(15);
@@ -63,6 +61,7 @@ const HomePage = () => {
     messageTime: "",
     userId: null,
   });
+  const [currentChannelId, setCurrentChannelId] = useState("");
   //all channels haven't messages
   const [allChannels, setAllChannels] = useState([]);
   //all users
@@ -73,9 +72,15 @@ const HomePage = () => {
   const [channelName, setChannelName] = useState("");
   const [isEmptyChannelName, setIsEmptyChannelName] = useState(false);
   // Tat cac tin nhan
-  const [renderMessages, setRenderMessages] = useState([]);
   const inputRef = useRef();
   const [inputValue, setInputValue] = useState("");
+  const [receivedCall, setReceivedCall] = useState(false);
+  const [renderMessages, setRenderMessages] = useState([]);
+  const [receivedCallUser, setReceivedCallUser] = useState({
+    callId: null,
+    name: null,
+    sendTo: null,
+  });
 
   const fetchMessage = useCallback(async () => {
     if (isLoading) return;
@@ -122,10 +127,6 @@ const HomePage = () => {
           }
         );
         setAllChannels(res.data);
-        console.log(
-          "🚀 ~ file: HomePage.jsx:121 ~ handleGetAllChannelCreated ~ res:",
-          res
-        );
       } catch (err) {
         console.log(
           "🚀 ~ file: HomePage.jsx:95 ~ handleGetAllChannelCreated ~ err:",
@@ -239,6 +240,36 @@ const HomePage = () => {
     }
   };
 
+  const handleLeaveGroup = async (body) => {
+    handleSendNotificationRemoveMember(body);
+    unsubscribe("/topic/group/" + body?.idChannel);
+    try {
+      const res = await axios.delete(
+        "http://localhost:8080/api/v1/channels/removeUser",
+        {
+          data: body,
+        }
+      );
+      handleResetData();
+      fetchData();
+    } catch (err) {
+      console.log("🚀 ~ file: HomePage.jsx:213 ~ handleLeaveGroup ~ err:", err);
+    }
+  };
+
+  const handleAddMember = async (body) => {
+    try {
+      const res = await axios.post(
+        "http://localhost:8080/api/v1/channels/addUser",
+        body
+      );
+      handleSendNotificationAddMember(body);
+      fetchData();
+    } catch (err) {
+      console.log("🚀 ~ file: HomePage.jsx:213 ~ handleLeaveGroup ~ err:", err);
+    }
+  };
+
   // Scroll
   const scrollToBottom = () => {
     if (chatContentRef.current) {
@@ -274,6 +305,39 @@ const HomePage = () => {
     }
   };
 
+  const handleSendNotificationAddMember = (user) => {
+    const newSendMessage = {
+      position: "right",
+      type: "JOIN",
+      content: user.username + " joined group",
+      sender: {
+        userId: userLoggedIn?.id,
+        username: userLoggedIn?.username,
+      },
+      sendTo: user.idUser ? user.idUser : null,
+      channelId: currentChannelId,
+    };
+    send(`/app/chat/group/${currentChannelId}`, newSendMessage, {});
+
+    fetchData();
+    scrollToBottom();
+  };
+  const handleSendNotificationRemoveMember = (user) => {
+    const newSendMessage = {
+      position: "right",
+      type: "LEAVE",
+      content: userLoggedIn.username + " leaved group",
+      sender: {
+        userId: userLoggedIn?.id,
+        username: userLoggedIn?.username,
+      },
+      sendTo: currentChannelId ? currentChannelId : null,
+      channelId: currentChannelId,
+    };
+    scrollToBottom();
+    send(`/app/chat/group/${currentChannelId}`, newSendMessage, {});
+  };
+
   const handleChatItemClick = (
     isOnline,
     name,
@@ -302,12 +366,6 @@ const HomePage = () => {
     }
   };
 
-  const handleSearch = (e) => {
-    if (e.key === "Enter") {
-      handleGetAllChannelCreated(searchChannelText);
-    }
-  };
-
   const handleResetData = () => {
     setRenderMessages([]);
     setCurrentChannel({
@@ -320,34 +378,36 @@ const HomePage = () => {
     setPreCursor("");
   };
 
-  const nav = useNavigate();
   useEffect(() => {
     if (!token) {
-      nav("/signin");
+      navigate("/signin");
       return;
     }
   }, []);
 
-  const subscribe = (client, path) => {
-    client.subscribe(
-      path,
-      ({ body }) => {
-        const message = JSON.parse(body);
-        if (message.type == "CREATE") {
-          const path = "/topic/group/" + message.channelId;
-          subscribe(client, path);
-        }
-        setNewMessage(message);
-      },
-      {
-        Authorization: "Bearer " + token,
-      }
-    );
+  const subscribeChat = (message) => {
+    if (message.type == "CREATE") {
+      const path = "/topic/group/" + message.channelId;
+      subscribe(path, subscribeChat);
+    }
+    setNewMessage(message);
   };
 
-  const subscribeUserChatPM = (client) => {
+  const subscribeUserChatPM = () => {
     const path = `/user/${userLoggedIn.id}/pm`;
-    subscribe(client, path);
+    subscribe(path, subscribeChat);
+  };
+
+  const subscribeNewGroup = () => {
+    const path = `/user/${userLoggedIn.id}/join-group`;
+    const callback = (message) => {
+      if (message.type == "JOIN") {
+        const path = "/topic/group/" + message.channelId;
+        subscribe(path, subscribeChat);
+        fetchData();
+      }
+    };
+    subscribe(path, callback);
   };
 
   const getGroupsOfUser = async () => {
@@ -366,26 +426,50 @@ const HomePage = () => {
     }
   };
 
-  const subscribeGroupChat = async (client) => {
+  const subscribeGroupChat = async () => {
     const groups = await getGroupsOfUser();
     if (groups == null) return;
     groups.forEach((group) => {
       const path = "/topic/group/" + group;
-      subscribe(client, path);
+      subscribe(path, subscribeChat);
     });
   };
 
+  const subscribeUserVideoCall = () => {
+    const path = `/user/${userLoggedIn.id}/call`;
+    const callback = function (message) {
+      if (message.type == "CREATE") {
+        setReceivedCallUser({
+          name: message.sender.username,
+          callId: message.payload.callId,
+          sendTo: message.sender.userId,
+        });
+        setReceivedCall(true);
+      } else if (message.type == "CANCEL" || message.type == "STOP") {
+        setReceivedCall(false);
+      }
+    };
+    subscribe(path, callback);
+  };
+
   useEffect(() => {
+    if (userLoggedIn == null) return;
     client.onConnect = () => {
-      subscribeUserChatPM(client);
-      subscribeGroupChat(client);
+      subscribeUserChatPM();
+      subscribeGroupChat();
+      subscribeUserVideoCall();
+      sendStatusToServer();
+      subscribeNewGroup();
     };
   }, [client]);
 
   useEffect(() => {
     if (newMessage == null) return;
     reArrangeUsersOnMessageSend(newMessage.channelId, newMessage);
-    if (newMessage.channelId === currentChannel.id) {
+    if (
+      newMessage.channelId === currentChannel.id ||
+      newMessage.channelId == currentChannelId
+    ) {
       setRenderMessages((pre) => [newMessage, ...pre]);
     }
   }, [newMessage]);
@@ -395,6 +479,7 @@ const HomePage = () => {
   };
 
   useEffect(() => {
+    if (userLoggedIn == null) window.location.reload();
     fetchData();
 
     document.addEventListener("mousemove", handleOnlineStatus);
@@ -431,39 +516,77 @@ const HomePage = () => {
     return () => clearInterval(intervalSend);
   }, []);
 
+  const handleCloseCallPopup = () => {
+    setReceivedCall(false);
+  };
+
+  const resetUstate = () => {
+    setRenderMessages([]);
+    setCurrentChannel({
+      id: "",
+      isOnline: false,
+      name: "",
+      messageTime: "",
+      userId: null,
+    });
+    setPreCursor("");
+    setNextCursor("");
+    setAllChannels([]);
+    setUsers([]);
+    setListUsers([]);
+    setChannelName("");
+    setIsEmptyChannelName(false);
+    setReceivedCall(false);
+    setReceivedCallUser({
+      callId: null,
+      name: null,
+      sendTo: null,
+    });
+    setData([]);
+  };
+
   if (token == null) return <div></div>;
   return (
     <>
+      {receivedCall && (
+        <ReceivedCallPopup
+          name={receivedCallUser.name}
+          callId={receivedCallUser.callId}
+          sendTo={receivedCallUser.sendTo}
+          handleClose={handleCloseCallPopup}
+        />
+      )}
       <div className={`${isDarkTheme && "dark"}`}>
         <div
           className={`w-full h-screen bg-[#ECF0F3]  flex items-center duration-300 transition-all dark:bg-[#1A1D24]`}
         >
           <div
-            className={`max-w-[1440px] w-full h-[800px] bg-[#ECF0F3] dark:bg-[#1A1D24]  ${
+            className={`max-w-[80%] w-full h-[90%] bg-[#ECF0F3] dark:bg-[#1A1D24]  ${
               isDarkTheme ? "float-neumorphism-dark" : "float-neumorphism"
             } m-auto rounded-2xl flex px-4 py-2 gap-4`}
           >
             {/* Sidebar */}
             <div
-              className={`flex flex-col w-[60px] h-full items-center justify-between ${
+              className={`flex flex-col w-[80px] h-full items-center justify-between ${
                 isDarkTheme ? "float-neumorphism-dark" : "float-neumorphism"
-              }  rounded-lg py-3`}
+              }  rounded-lg p-3`}
             >
-              <Avatar name={userLoggedIn?.username} size={10} />
+              <Avatar name={userLoggedIn?.username} size={12} />
               <div className="px-1 py-1 cursor-pointer relative">
                 <BiMenu
-                  size={24}
+                  size={32}
                   className={`${isDarkTheme && "text-white"} hover:opacity-60 `}
                   onClick={() => setIsShowMenu(!isShowMenu)}
                 />
                 {isShowMenu && (
                   <div
-                    className={`absolute w-[150px] h-[50px] bg-white dark:bg-[#2D323D] dark:text-white rounded-full top-[-180%] left-[-160%] z-50 flex items-center justify-center  shadow-xl`}
+                    className={`absolute w-[150px] h-[50px] bg-white dark:bg-[#2D323D] dark:text-white rounded-full top-[-180%] left-[-50%] z-50 flex items-center justify-center  shadow-xl`}
                   >
                     <div
                       className="w-[70%] h-[70%] rounded-full hover:bg-[#ECF0F3] dark:hover:bg-[#1A1D24] flex items-center justify-center gap-2"
                       onClick={() => {
                         logout();
+                        resetUstate();
                         navigate("/signin");
                       }}
                     >
@@ -475,11 +598,11 @@ const HomePage = () => {
               </div>
             </div>
             {/* Left */}
-            <div className="w-[380px] h-full rounded-lg py-3 px-4 flex flex-col items-center gap-4">
+            <div className="w-[40%] z-10 h-full rounded-lg py-3 px-2 flex flex-col items-center gap-4">
               <div
                 className={`w-[50%] h-12  ${
                   isDarkTheme ? "float-neumorphism-dark" : "float-neumorphism"
-                } flex items-center justify-center gap-2 px-2 py-1 rounded`}
+                } flex items-center justify-center gap-2 px-2 py-1 rounded-full`}
               >
                 <div
                   className={`w-14 h-7 rounded-full ${
@@ -504,13 +627,13 @@ const HomePage = () => {
                 </div>
               </div>
               <div
-                className={`w-full h-8 ${
+                className={`w-full h-10 ${
                   isDarkTheme && "deep-neumorphism-dark"
                 } deep-neumorphism bg-[#ECF0F3] dark:bg-[#1A1D24] rounded-full flex items-center justify-between`}
               >
                 <div className="flex items-center px-2 py-2 gap-2">
                   <AiOutlineSearch
-                    size={20}
+                    size={28}
                     className={`text-[#1A1D24] dark:text-white`}
                     onClick={() => {
                       handleGetAllChannelCreated(e);
@@ -519,16 +642,15 @@ const HomePage = () => {
                   <input
                     type="text"
                     placeholder="Search Messenger"
-                    className={`text-gray-700 placeholder-[#495FB8] dark:text-white bg-transparent text-sm outline-none`}
+                    className={`text-gray-700 placeholder-[#495FB8] dark:text-white bg-transparent text-md outline-none`}
                     onChange={(e) => handleGetAllChannelCreated(e)}
-                    // onKeyDown={(e) => handleSearch(e)}
                   ></input>
                 </div>
               </div>
               <div
-                className={`flex flex-col gap-3 h-[600px] overflow-x-hidden overflow-y-auto no-scrollbar w-full bg-transparent ${
+                className={`flex flex-col z-10 gap-3 h-full overflow-x-hidden overflow-y-auto no-scrollbar w-full ${
                   isDarkTheme && "deep-neumorphism-dark"
-                } deep-neumorphism rounded-xl px-4 py-3`}
+                } deep-neumorphism rounded-xl px-2 py-3`}
               >
                 {searchChannelText != ""
                   ? allChannels.map((item, index) => (
@@ -573,7 +695,9 @@ const HomePage = () => {
                             item?.userId
                           );
                         }}
-                        key={index}
+                        setCurrentChannelId={setCurrentChannelId}
+                        leaveGroup={handleLeaveGroup}
+                        addMember={handleAddMember}
                       />
                     ))}
               </div>
@@ -600,7 +724,7 @@ const HomePage = () => {
             </div>
             {/* Right */}
             <div
-              className={`h-full w-[1000px] flex flex-col justify-between  py-2 px-2 bg-[#ECF0F3] dark:bg-[#1A1D24]`}
+              className={`h-full w-full flex flex-col justify-between  py-2 px-2 bg-[#ECF0F3] dark:bg-[#1A1D24]`}
             >
               <div
                 className={`w-full h-[80px] flex gap-2 px-2 py-2 rounded-lg ${
@@ -622,15 +746,21 @@ const HomePage = () => {
                     name={currentChannel.name}
                   />
                 </div>
-                <div className="w-[40px] flex items-center justify-center">
+                <div className="w-[60px] flex items-center justify-center">
                   <button
-                    className={` w-[40px] h-[40px] rounded-full cursor-pointer feature-btn ${
+                    className={` w-[60px] h-[60px] rounded-full cursor-pointer feature-btn ${
                       isDarkTheme
                         ? "float-neumorphism-chat-dark feature-btn-dark"
                         : "float-neumorphism-chat feature-btn"
                     } flex items-center justify-center text-[#495FB8]`}
                   >
-                    <BsCameraVideoFill size={20} />
+                    <div className="w-[60px] mx-4  flex items-center justify-center">
+                      <VideoCallButton
+                        isDarkTheme={isDarkTheme}
+                        channelId={currentChannel.id}
+                        sendTo={currentChannel.userId}
+                      />
+                    </div>
                   </button>
                 </div>
               </div>
@@ -649,13 +779,18 @@ const HomePage = () => {
                 >
                   {currentChannel.name != "" ? (
                     renderMessages?.map((message) =>
-                      message.type == "CREATE" ? (
+                      message.type == "CREATE" ||
+                      message.type == "JOIN" ||
+                      message.type == "LEAVE" ? (
                         <MessageCenter
+                          key={message?.id}
                           messageType={message?.type}
                           content={message?.content}
+                          isDarkTheme={isDarkTheme}
                         />
                       ) : message.sender.userId != userLoggedIn.id ? (
                         <MessageReceived
+                          key={message?.id}
                           isDarkTheme={isDarkTheme}
                           content={message?.content}
                           username={message?.sender.username}
@@ -663,6 +798,7 @@ const HomePage = () => {
                         />
                       ) : (
                         <MessageSend
+                          key={message?.id}
                           createdAt={message?.createdAt}
                           content={message?.content}
                         />
@@ -670,7 +806,9 @@ const HomePage = () => {
                     )
                   ) : (
                     <div className="flex flex-col justify-center h-full items-center gap-4">
-                      <span>Select Channel to Show Messages</span>
+                      <span className={`${isDarkTheme && "text-white"}`}>
+                        Select Channel to Show Messages
+                      </span>
                       <img
                         className="w-[400px] h-[400px]"
                         src="https://i.redd.it/rwhpkq916y3z.jpg"
@@ -706,148 +844,48 @@ const HomePage = () => {
                     isDarkTheme
                       ? "deep-neumorphism-item-dark"
                       : "deep-neumorphism-item"
-                  } w-full h-full rounded-lg deep-neumorphism-item outline-none px-4 text-sm text-gray-700 placeholder-[#495FB8] dark:text-white bg-transparent`}
+                  } w-full h-full rounded-lg deep-neumorphism-item outline-none px-4 text-md text-gray-700 placeholder-[#495FB8] dark:text-white bg-transparent`}
                   placeholder="Type Message"
                   onChange={handleInputChange}
                   onKeyDown={handleKeyPress}
                   ref={inputRef}
                 ></input>
-                <div className="w-[40px] flex items-center justify-center">
+                <div className="w-[60px] flex items-center justify-center">
                   <button
-                    className={` w-[40px] h-[40px] rounded-full cursor-pointer active:deep-neumorphism-item  ${
+                    className={` w-[52px] h-[52px] rounded-full cursor-pointer active:deep-neumorphism-item  ${
                       isDarkTheme
                         ? "float-neumorphism-chat-dark feature-btn-dark"
                         : "float-neumorphism-chat feature-btn"
                     } flex items-center justify-center text-[#495FB8]`}
                     onClick={handleSendMessage}
                   >
-                    <RiSendPlaneFill size={20} />
+                    <RiSendPlaneFill size={30} />
                   </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div
-          className={`absolute flex ${
-            isShowAddPopup
-              ? "opacity-100 top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]"
-              : "opacity-0 top-[-100%] translate-x-[-50%] translate-y-[-50%] left-[50%]"
-          } transition-all duration-300 linear w-[500px] h-[500px] rounded-xl bg-white dark:bg-[#2D323D] flex flex-col shadow-2xl`}
-        >
-          <div
-            className={`w-full flex items-center justify-center py-4 relative dark:text-white`}
-          >
-            <p className={` font-semibold`}>New Message</p>
-            <div>
-              <AiOutlineClose
-                size={16}
-                className={`absolute top-[35%] right-2 cursor-pointer `}
-                onClick={(e) => {
-                  setIsShowAddPopup(false);
-                  setListUsers([]);
-                  setUsers([]);
-                }}
-              />
-            </div>
-          </div>
-          <div
-            className={`w-full flex gap-2 px-2 py-2 border-y border-gray-300 dark:text-white`}
-          >
-            <span>To:</span>
-            <input
-              type="text"
-              placeholder="Search Username or Email"
-              className={`outline-none placeholder-gray-500 w-full text-sm bg-transparent `}
-              onChange={(e) => {
-                setSearchUserText(e.target.value);
-                handleSearchUser(e.target.value);
-              }}
-            />
-          </div>
-          <div className="w-full h-[400px] px-2 pt-2">
-            <div className="flex flex-col gap-4 text-sm dark:text-white h-[200px] overflow-auto">
-              {searchUserText != "" &&
-                users?.map((item, index) => (
-                  <div
-                    key={index}
-                    className="bg-red py-2 px-4 w-min flex gap-4 
-                items-center border border-black rounded-full cursor-pointer"
-                    onClick={() => {
-                      if (!listUsers.some((user) => user.id === item.id)) {
-                        setListUsers([...listUsers, item]);
-                      }
-                    }}
-                  >
-                    {item?.username}
-                  </div>
-                ))}
-            </div>
-          </div>
-          <div className="flex gap-4 text-sm dark:text-white h-[100px] overflow-auto px-4 border-t-2 border-gray-400 pt-2">
-            {listUsers?.map((item, index) => (
-              <div
-                key={index}
-                className="bg-red py-2 px-4 w-min flex gap-2 h-8
-                items-center border border-black rounded-full cursor-pointer "
-              >
-                {item?.username}
-                <div>
-                  <AiOutlineClose
-                    size={16}
-                    onClick={() =>
-                      setListUsers(
-                        listUsers.filter((user) => user.id != item.id)
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col gap-2 my-2">
-            {listUsers.length > 1 && (
-              <div>
-                <label className="px-2">Name group</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter name group chat"
-                  className="px-2 border border-radius-4 border-black h-6 rounded-lg outline-none"
-                  onChange={(e) => {
-                    setChannelName(e.target.value);
-                  }}
-                />
-              </div>
-            )}
-            {isEmptyChannelName && listUsers.length > 1 && (
-              <span className="text-red-500 font-medium text-sm px-4">
-                Username must be not empty!.
-              </span>
-            )}
-          </div>
-          <div className="w-full h-24 px-2 py-2 border-t-slate-200 ">
-            <button
-              className={`w-full h-full bg-[#8090CB] hover:opacity-60 text-white font-semibold rounded-lg flex items-center justify-center`}
-              onClick={() => {
-                if (channelName.trim() === "") {
-                  if (listUsers.length == 1) {
-                    handleCreateChannel();
-                    setIsShowAddPopup(false);
-                  } else {
-                    setIsEmptyChannelName(true);
-                  }
-                } else {
-                  setIsEmptyChannelName(false);
-                  handleCreateChannel();
-                  setIsShowAddPopup(false);
-                }
-              }}
-            >
-              Create
-            </button>
-          </div>
-        </div>
+        {isShowAddPopup && (
+          <SearchUserPopUp
+            isShowAddPopup={isShowAddPopup}
+            setIsShowAddPopup={setIsShowAddPopup}
+            setListUsers={setListUsers}
+            setUsers={setUsers}
+            setIsEmptyChannelName={setIsEmptyChannelName}
+            setSearchUserText={setSearchUserText}
+            handleSearchUser={handleSearchUser}
+            searchUserText={searchUserText}
+            users={users}
+            listUsers={listUsers}
+            setChannelName={setChannelName}
+            isEmptyChannelName={isEmptyChannelName}
+            handleCreateChannel={handleCreateChannel}
+            channelName={channelName}
+            header={"New Message "}
+            action={"Create"}
+          />
+        )}
       </div>
     </>
   );

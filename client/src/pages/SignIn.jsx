@@ -32,6 +32,7 @@ export const SignUp = () => {
   const [isValidPassword, setIsValidPassword] = useState(true);
   const [showMailHelp, setShowMailHelp] = useState(false);
   const [showUsernameHelp, setShowUsernameHelp] = useState(false);
+
   useEffect(() => {
     if (localStorage.getItem("token") != null) {
       navigate("/");
@@ -111,7 +112,10 @@ export const SignUp = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-    if (loginUser.username.trim() !== "" && loginUser.password.trim() !== "") {
+    if (
+      loginUser.username?.trim() !== "" &&
+      loginUser.password?.trim() !== ""
+    ) {
       try {
         const res = await login(loginUser.username, loginUser.password);
         setState(res.data.accessToken);
@@ -174,6 +178,8 @@ export const SignUp = () => {
 
   const handlerReset = () => {
     document.querySelectorAll("input")?.forEach((item) => (item.value = ""));
+    const container = document.querySelector(".box");
+    container.classList.toggle("right-panel-active");
   };
   return (
     <div className="box">
