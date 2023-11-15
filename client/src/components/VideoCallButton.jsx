@@ -41,6 +41,7 @@ const VideoCallButton = ({ isDarkTheme, channelId, sendTo }) => {
           "rel=noopener noreferrer"
         );
     } catch (err) {
+      //TODO: handle user is calling and call twice
       console.log(err);
     }
   };
