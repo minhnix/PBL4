@@ -21,6 +21,7 @@ import VideoCallButton from "../components/VideoCallButton";
 import MessageReceived from "../components/MessageReceived";
 import ReceivedCallPopup from "../components/ReceivedCallPopUp";
 import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
+import Popup from "../components/Popup";
 
 const HomePage = () => {
   const { logout } = useAuth();
@@ -80,6 +81,11 @@ const HomePage = () => {
     callId: null,
     name: null,
     sendTo: null,
+  });
+
+  const [popup, setPopup] = useState({
+    isHidden: true,
+    message: "",
   });
 
   const fetchMessage = useCallback(async () => {
@@ -545,9 +551,18 @@ const HomePage = () => {
     setData([]);
   };
 
+  const handleClosePopup = () => {
+    setPopup({
+      isHidden: true,
+      message: "",
+    });
+  };
   if (token == null) return <div></div>;
   return (
     <>
+      {!popup.isHidden && !receivedCall && (
+        <Popup handleClose={handleClosePopup} message={popup.message}></Popup>
+      )}
       {receivedCall && (
         <ReceivedCallPopup
           name={receivedCallUser.name}
@@ -759,6 +774,8 @@ const HomePage = () => {
                         isDarkTheme={isDarkTheme}
                         channelId={currentChannel.id}
                         sendTo={currentChannel.userId}
+                        setPopup={setPopup}
+                        channelName={currentChannel.name}
                       />
                     </div>
                   </button>
