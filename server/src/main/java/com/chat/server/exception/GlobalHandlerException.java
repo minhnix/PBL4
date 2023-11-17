@@ -36,6 +36,12 @@ public class GlobalHandlerException {
         return new ApiResponse(false, e.getMessage());
     }
 
+    @ExceptionHandler(UserCallingException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse handleUserCallingException(UserCallingException e) {
+        return new ApiResponse(false, e.getMessage());
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiResponse handleResourceNotFoundException(ResourceNotFoundException e) {
@@ -65,16 +71,19 @@ public class GlobalHandlerException {
     public ApiResponse handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
         return new ApiResponse(false, e.getMessage());
     }
+
     @ExceptionHandler(ForbiddenException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiResponse handleForbiddenException(ForbiddenException e) {
         return new ApiResponse(false, e.getMessage());
     }
+
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse handleAuthenticationException(AuthenticationException e) {
         return new ApiResponse(false, e.getMessage());
     }
+
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse handle(SQLIntegrityConstraintViolationException e) {

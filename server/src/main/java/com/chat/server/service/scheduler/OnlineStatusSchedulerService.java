@@ -18,7 +18,7 @@ public class OnlineStatusSchedulerService implements OnlineStatusScheduler {
     private final Map<String, ScheduledFuture<?>> userTasks = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
     private final UserService userService;
-    private static final long MAX_IDLE_TIME = 90 * 1000;
+    private static final long MAX_IDLE_TIME = 60 * 1000;
 
     public OnlineStatusSchedulerService(TaskScheduler taskScheduler, UserService userService) {
         this.taskScheduler = taskScheduler;
@@ -48,7 +48,7 @@ public class OnlineStatusSchedulerService implements OnlineStatusScheduler {
     }
 
     @Override
-    @Scheduled(fixedDelay = 10 * 60 * 1000)
+    @Scheduled(fixedDelay = 5 * 60 * 1000)
     public void checkStatusScheduler() {
         log.info("Scheduler: checkStatusScheduler");
         long currentTime = System.currentTimeMillis();
