@@ -22,7 +22,6 @@ const Videos = () => {
   const searchParams = new URLSearchParams(search);
   const [webcamActive, setWebcamActive] = useState(false);
   const callId = searchParams.get("call_id");
-  console.log("🚀 ~ Videos ~ callId:", callId);
   const mode = searchParams.get("mode");
   const sendTo = searchParams.get("send");
   const channelId = searchParams.get("channel_id");
@@ -56,7 +55,6 @@ const Videos = () => {
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         const offerCandidate = event.candidate;
-        console.log("🚀 ~ createVideoCall ~ offerCandidate:", offerCandidate);
         updateCall({ offerCandidate }).then(() => {
           console.log("OK");
         });
@@ -84,18 +82,21 @@ const Videos = () => {
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         const answerCandidate = event.candidate;
-        console.log("🚀 ~ joinVideoCall ~ answerCandidate:", answerCandidate);
         updateCall({ answerCandidate }).then(() => {
           console.log("OK");
         });
       }
     };
     const fetchDataInterval = setInterval(async () => {
-      const callData = await getCall();
-      if (callData.data?.offerDescription) {
+      try {
+        const callData = await getCall();
+        if (callData.data?.offerDescription) {
+          clearInterval(fetchDataInterval);
+          await handleJoinVideoCall(callData);
+        }
+      } catch (err) {
         clearInterval(fetchDataInterval);
-
-        await handleJoinVideoCall(callData);
+        hangUp();
       }
     }, 100);
   };
@@ -122,7 +123,6 @@ const Videos = () => {
         callId,
       },
     };
-    console.log("🚀 ~ joinVideoCall ~ message:", message);
     send("/app/call/pm", message, {});
   }
 
@@ -167,14 +167,29 @@ const Videos = () => {
     window.close();
   };
 
+  const handleClickHangupButton = async () => {
+    const message = {
+      type: "CANCEL",
+      sender: {
+        userId: userLoggedIn.id,
+        username: userLoggedIn.username,
+      },
+      sendTo,
+      payload: {
+        callId,
+      },
+    };
+    send("/app/call/pm", message, {});
+    await hangUp();
+  };
+
   const subscribeUserVideoCall = (client) => {
     const path = `/user/${userLoggedIn.id}/call`;
     client.subscribe(path, ({ body }) => {
       const message = JSON.parse(body);
-      if (message.type === "JOIN") {
-        console.log("🚀 ~ client.subscribe ~ message:", message);
+      console.log("🚀 ~ client.subscribe ~ message:", message);
+      if (message.type === "JOIN" && message.payload.callId) {
         getCall().then((callData) => {
-          console.log(callData);
           if (!pc.currentRemoteDescription) {
             pc.setRemoteDescription(
               new RTCSessionDescription(callData.data.answerDescription)
@@ -185,9 +200,15 @@ const Videos = () => {
               pc.addIceCandidate(new RTCIceCandidate(data));
             });
         });
+      } else if (
+        message.type === "CANCEL" &&
+        callId == message.payload.callId
+      ) {
+        hangUp();
       }
     });
   };
+
   useEffect(() => {
     if (userLoggedIn == null) return;
     client.onConnect = () => {
@@ -198,9 +219,17 @@ const Videos = () => {
   useEffect(() => {
     setupSources();
     const handleBeforeUnload = (e) => {
-      e.preventDefault();
+      navigator.sendBeacon(
+        baseUrl + callId,
+        JSON.stringify({
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        })
+      );
       hangUp();
-      return (e.returnValue = "Are you sure you want to close?");
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -221,7 +250,7 @@ const Videos = () => {
       />
       <div className="buttonsContainer">
         <button
-          onClick={hangUp}
+          onClick={handleClickHangupButton}
           disabled={!webcamActive}
           className="hangup button"
         >

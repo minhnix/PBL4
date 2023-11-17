@@ -2,7 +2,13 @@ import { BsCameraVideoFill } from "react-icons/bs";
 import axios from "axios";
 import { useMessage } from "../context/message.context";
 
-const VideoCallButton = ({ isDarkTheme, channelId, sendTo }) => {
+const VideoCallButton = ({
+  isDarkTheme,
+  channelId,
+  sendTo,
+  setPopup,
+  channelName,
+}) => {
   const { userLoggedIn } = useMessage();
   const token = localStorage.getItem("token");
   const handleClickButton = async () => {
@@ -41,7 +47,20 @@ const VideoCallButton = ({ isDarkTheme, channelId, sendTo }) => {
           "rel=noopener noreferrer"
         );
     } catch (err) {
-      console.log(err);
+      const messageError = err.response.data.message;
+      if (messageError.includes("You")) {
+        setPopup({
+          isHidden: false,
+          message: messageError,
+        });
+      } else if (messageError.includes("User")) {
+        setPopup({
+          isHidden: false,
+          message: channelName + " is calling",
+        });
+      } else {
+        console.log(err);
+      }
     }
   };
   return (
