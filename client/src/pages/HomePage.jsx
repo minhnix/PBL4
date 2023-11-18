@@ -248,7 +248,7 @@ const HomePage = () => {
 
   const handleLeaveGroup = async (body) => {
     handleSendNotificationRemoveMember(body);
-    unsubscribe("/topic/group/" + body?.idChannel);
+    unsubscribe("/topic/group/" + body.idChannel + "/chat");
     try {
       const res = await axios.delete(
         "http://localhost:8080/api/v1/channels/removeUser",
@@ -393,7 +393,7 @@ const HomePage = () => {
 
   const subscribeChat = (message) => {
     if (message.type == "CREATE") {
-      const path = "/topic/group/" + message.channelId;
+      const path = "/topic/group/" + message.channelId + "/chat";
       subscribe(path, subscribeChat);
     }
     setNewMessage(message);
@@ -408,7 +408,7 @@ const HomePage = () => {
     const path = `/user/${userLoggedIn.id}/join-group`;
     const callback = (message) => {
       if (message.type == "JOIN") {
-        const path = "/topic/group/" + message.channelId;
+        const path = "/topic/group/" + message.channelId + "/chat";
         subscribe(path, subscribeChat);
         fetchData();
       }
@@ -436,7 +436,7 @@ const HomePage = () => {
     const groups = await getGroupsOfUser();
     if (groups == null) return;
     groups.forEach((group) => {
-      const path = "/topic/group/" + group;
+      const path = "/topic/group/" + group + "/chat";
       subscribe(path, subscribeChat);
     });
   };

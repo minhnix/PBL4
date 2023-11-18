@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import { StompProvider } from "usestomp-hook/lib";
 import { config } from "./config/websocket.config";
 import Videos from "./components/Videos";
+import Room from "./pages/Room";
 
 function App() {
   return (
@@ -23,6 +24,14 @@ function App() {
           element={
             <StompProvider config={config}>
               <Videos />
+            </StompProvider>
+          }
+        />
+        <Route
+          path="/room/:roomId"
+          element={
+            <StompProvider config={config}>
+              <Room />
             </StompProvider>
           }
         />
