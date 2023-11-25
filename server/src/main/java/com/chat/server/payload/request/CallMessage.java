@@ -11,7 +11,12 @@ public class CallMessage {
         CREATE,
         JOIN,
         MESSAGE,
-        CANCEL
+        CANCEL,
+        CALL,
+        ACCEPT,
+        LEAVE,
+        TOGGLE_CAM,
+        TOGGLE_MIC
     }
     private Type type;
     private String sendTo;

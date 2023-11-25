@@ -27,4 +27,5 @@ public class Call {
     private String status;
     private String sendTo;
     private UserWithUsername sender;
+    private List<CallUserInfo> userInfos = new ArrayList<>();
 }

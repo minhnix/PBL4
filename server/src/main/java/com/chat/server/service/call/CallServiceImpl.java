@@ -1,4 +1,4 @@
-package com.chat.server.service.impl;
+package com.chat.server.service.call;
 
 import com.chat.server.exception.BadRequestException;
 import com.chat.server.exception.UserCallingException;
@@ -6,7 +6,7 @@ import com.chat.server.model.Call;
 import com.chat.server.model.UserWithUsername;
 import com.chat.server.payload.request.CallRequest;
 import com.chat.server.repository.CallRepository;
-import com.chat.server.service.CallService;
+import com.chat.server.service.call.CallService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

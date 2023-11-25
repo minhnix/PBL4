@@ -1,7 +1,7 @@
 package com.chat.server.service.scheduler;
 
 import com.chat.server.payload.request.CallMessage;
-import com.chat.server.service.CallService;
+import com.chat.server.service.call.CallService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;

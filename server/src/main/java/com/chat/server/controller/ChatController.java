@@ -47,7 +47,7 @@ public class ChatController {
             template.convertAndSendToUser(chatMessage.getSendTo(), "/join-group", chatMessage);
         }
         Message message = messageService.saveMessage(chatMessage);
-        template.convertAndSend("/topic/group/" + groupId, message);
+        template.convertAndSend("/topic/group/" + groupId + "/chat", message);
     }
 
 }
