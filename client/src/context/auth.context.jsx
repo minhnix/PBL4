@@ -3,6 +3,7 @@ import { useState } from "react";
 import jwtDecode from "jwt-decode";
 import { useContext } from "react";
 import { createContext } from "react";
+import { SERVER_URL } from "../config";
 
 const AuthContext = createContext();
 
@@ -20,10 +21,7 @@ function AuthProvider(props) {
       usernameOrEmail: username,
       password,
     };
-    const res = await axios.post(
-      "http://localhost:8080/api/v1/auth/login",
-      body
-    );
+    const res = await axios.post(SERVER_URL + "/api/v1/auth/login", body);
     return res;
   };
 

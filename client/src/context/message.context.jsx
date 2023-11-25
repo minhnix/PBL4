@@ -3,6 +3,7 @@ import { useState } from "react";
 import { createContext } from "react";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
+import { SERVER_URL } from "../config";
 
 const MessageContext = createContext();
 
@@ -19,7 +20,7 @@ const MessageProvider = (props) => {
         return;
       }
 
-      const res = await axios.get(`http://localhost:8080/api/v1/channels`, {
+      const res = await axios.get(`${SERVER_URL}/api/v1/channels`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

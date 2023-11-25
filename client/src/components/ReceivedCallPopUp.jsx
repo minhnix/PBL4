@@ -3,6 +3,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import Avatar from "./Avatar";
 import { useMessage } from "../context/message.context";
 import { useStomp } from "usestomp-hook/lib";
+import { CLIENT_URL } from "../config";
 
 const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo }) => {
   const { userLoggedIn } = useMessage();
@@ -53,7 +54,7 @@ const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo }) => {
                   onClick={() => {
                     handleClose();
                     window.open(
-                      `http://localhost:5173/video/?mode=join&call_id=${callId}&send=${sendTo}`,
+                      `${CLIENT_URL}/video/?mode=join&call_id=${callId}&send=${sendTo}`,
                       "_blank",
                       "rel=noopener noreferrer"
                     );

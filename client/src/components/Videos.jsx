@@ -5,6 +5,7 @@ import { useStomp } from "usestomp-hook/lib";
 import { useMessage } from "../context/message.context";
 import { StompContext } from "usestomp-hook/lib/Provider";
 import axios from "axios";
+import { SERVER_URL } from "../config";
 
 const servers = {
   iceServers: [
@@ -31,7 +32,7 @@ const Videos = () => {
   const client = useContext(StompContext).stompClient;
   const { userLoggedIn } = useMessage();
 
-  const baseUrl = "http://localhost:8080/api/v1/calls/";
+  const baseUrl = SERVER_URL + "/api/v1/calls/";
 
   const updateCall = async (requestBody) => {
     const res = await axios.patch(baseUrl + callId, requestBody, {

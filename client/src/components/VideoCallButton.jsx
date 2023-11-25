@@ -1,6 +1,7 @@
 import { BsCameraVideoFill } from "react-icons/bs";
 import axios from "axios";
 import { useMessage } from "../context/message.context";
+import { CLIENT_URL, SERVER_URL } from "../config";
 
 const VideoCallButton = ({
   isDarkTheme,
@@ -14,7 +15,7 @@ const VideoCallButton = ({
   const handleClickButton = async () => {
     if (!sendTo) {
       window.open(
-        `http://localhost:5173/room/${channelId}`,
+        `${CLIENT_URL}/room/${channelId}`,
         "_blank",
         "rel=noopener noreferrer"
       );
@@ -31,7 +32,7 @@ const VideoCallButton = ({
           },
         };
         const res = await axios.post(
-          `http://localhost:8080/api/v1/calls`,
+          `${SERVER_URL}/api/v1/calls`,
           requestBody,
           {
             headers: {
@@ -42,13 +43,13 @@ const VideoCallButton = ({
         if (!res.data?.id) return;
         if (res.data.status == "CREATE")
           window.open(
-            `http://localhost:5173/video/?mode=create&call_id=${res.data.id}&send=${res.data.sendTo}&channel_id=${res.data.channelId}`,
+            `${CLIENT_URL}/video/?mode=create&call_id=${res.data.id}&send=${res.data.sendTo}&channel_id=${res.data.channelId}`,
             "_blank",
             "rel=noopener noreferrer"
           );
         else if (res.data.status == "JOIN")
           window.open(
-            `http://localhost:5173/video/?mode=join&call_id=${res.data.id}&send=${res.data.sender.userId}&channel_id=${res.data.channelId}`,
+            `${CLIENT_URL}/video/?mode=join&call_id=${res.data.id}&send=${res.data.sender.userId}&channel_id=${res.data.channelId}`,
             "_blank",
             "rel=noopener noreferrer"
           );
