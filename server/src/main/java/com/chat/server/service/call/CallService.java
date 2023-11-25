@@ -1,4 +1,4 @@
-package com.chat.server.service;
+package com.chat.server.service.call;
 
 import com.chat.server.model.Call;
 import com.chat.server.model.UserWithUsername;
