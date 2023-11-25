@@ -125,7 +125,7 @@ const HomePage = () => {
       // e.preventDefault();
       try {
         const res = await axios.get(
-          `http://localhost:8080/api/v1/channels/search?q=${e.target.value}`,
+          `${SERVER_URL}/api/v1/channels/search?q=${e.target.value}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -148,7 +148,7 @@ const HomePage = () => {
     if (preCursor)
       try {
         const res = await axios.get(
-          `http://localhost:8080/api/v1/messages/${currentChannel.id}?size=${size}&pre=${preCursor}`,
+          `${SERVER_URL}/api/v1/messages/${currentChannel.id}?size=${size}&pre=${preCursor}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -171,7 +171,7 @@ const HomePage = () => {
     setIsLoading(true);
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/messages/${cur.id}?size=${size}&pre=${cur.preCursor}`,
+        `${SERVER_URL}/api/v1/messages/${cur.id}?size=${size}&pre=${cur.preCursor}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -195,14 +195,11 @@ const HomePage = () => {
   //Search user to create Channel
   const handleSearchUser = async (e) => {
     try {
-      const res = await axios.get(
-        `http://localhost:8080/api/v1/users/search?q=${e}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await axios.get(`${SERVER_URL}/api/v1/users/search?q=${e}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setUsers(res.data);
     } catch (err) {
       console.log("🚀 ~ file: HomePage.jsx:163 ~ handleSearchUser ~ err:", err);
@@ -235,7 +232,7 @@ const HomePage = () => {
   const handleCreateChannel = async () => {
     try {
       const res = await axios.post(
-        `http://localhost:8080/api/v1/channels/create`,
+        `${SERVER_URL}/api/v1/channels/create`,
         transformData(listUsers)
       );
     } catch (err) {
@@ -248,10 +245,10 @@ const HomePage = () => {
 
   const handleLeaveGroup = async (body) => {
     handleSendNotificationRemoveMember(body);
-    unsubscribe("/topic/group/" + body?.idChannel);
+    unsubscribe("/topic/group/" + body.idChannel + "/chat");
     try {
       const res = await axios.delete(
-        "http://localhost:8080/api/v1/channels/removeUser",
+        "${SERVER_URL}/api/v1/channels/removeUser",
         {
           data: body,
         }
@@ -266,7 +263,7 @@ const HomePage = () => {
   const handleAddMember = async (body) => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/v1/channels/addUser",
+        "${SERVER_URL}/api/v1/channels/addUser",
         body
       );
       handleSendNotificationAddMember(body);
@@ -393,7 +390,7 @@ const HomePage = () => {
 
   const subscribeChat = (message) => {
     if (message.type == "CREATE") {
-      const path = "/topic/group/" + message.channelId;
+      const path = "/topic/group/" + message.channelId + "/chat";
       subscribe(path, subscribeChat);
     }
     setNewMessage(message);
@@ -408,7 +405,7 @@ const HomePage = () => {
     const path = `/user/${userLoggedIn.id}/join-group`;
     const callback = (message) => {
       if (message.type == "JOIN") {
-        const path = "/topic/group/" + message.channelId;
+        const path = "/topic/group/" + message.channelId + "/chat";
         subscribe(path, subscribeChat);
         fetchData();
       }
@@ -418,14 +415,11 @@ const HomePage = () => {
 
   const getGroupsOfUser = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:8080/api/v1/channels?type=group`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await axios.get(`${SERVER_URL}/api/v1/channels?type=group`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return res.data;
     } catch (err) {
       console.log("🚀 ~ getGroupOfUser ~ err:", err);
@@ -436,7 +430,7 @@ const HomePage = () => {
     const groups = await getGroupsOfUser();
     if (groups == null) return;
     groups.forEach((group) => {
-      const path = "/topic/group/" + group;
+      const path = "/topic/group/" + group + "/chat";
       subscribe(path, subscribeChat);
     });
   };

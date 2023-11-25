@@ -10,6 +10,7 @@ import {
 } from "react-icons/ai";
 import { TfiHelpAlt } from "react-icons/tfi";
 import { isEmail, isPassword, isUsername } from "../utils/validation";
+import SERVER_URL from "../config";
 
 export const SignUp = () => {
   const { login, setState } = useAuth();
@@ -98,7 +99,7 @@ export const SignUp = () => {
     ) {
       try {
         const res = await axios.post(
-          "http://localhost:8080/api/v1/auth/signup",
+          SERVER_URL + "/api/v1/auth/signup",
           reqBody
         );
         handlerReset();

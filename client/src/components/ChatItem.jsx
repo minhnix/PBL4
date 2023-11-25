@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import { MdOutlineMoreHoriz } from "react-icons/md";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { calculateTimeDifference } from "../utils/formatTime";
+import { SERVER_URL } from "../config";
 const ChatItem = ({
   item,
   isDarkTheme,
@@ -33,14 +34,11 @@ const ChatItem = ({
   };
   const handleSearchUser = async (e, channelInfor) => {
     try {
-      const res = await axios.get(
-        `http://localhost:8080/api/v1/users/search?q=${e}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await axios.get(`${SERVER_URL}/api/v1/users/search?q=${e}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setListUserToShow(
         res.data.filter(
           (itemA) => !channelInfor.some((itemB) => itemB.id === itemA.id)
@@ -54,7 +52,7 @@ const ChatItem = ({
   const handleGetInforChannel = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/channels/${item?.channelId}`,
+        `${SERVER_URL}/api/v1/channels/${item?.channelId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setChannelInfor(res.data.users);
