@@ -23,6 +23,7 @@ import ReceivedCallPopup from "../components/ReceivedCallPopUp";
 import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import Popup from "../components/Popup";
 import { SERVER_URL } from "../config";
+import SendFilePopUp from "../components/SendFilePopUp";
 
 const HomePage = () => {
   const { logout } = useAuth();
@@ -62,6 +63,7 @@ const HomePage = () => {
     name: "",
     messageTime: "",
     userId: null,
+    type: "",
   });
   const [currentChannelId, setCurrentChannelId] = useState("");
   //all channels haven't messages
@@ -88,6 +90,19 @@ const HomePage = () => {
     isHidden: true,
     message: "",
   });
+
+  const [sendFile, setSendFile] = useState(false);
+  const [fileInfo, setFileInfo] = useState({
+    senderId: userLoggedIn.id,
+    recieverId: "",
+    fileName: "",
+    fileSize: "",
+    isImage: false,
+    previewUrl: "",
+    data: null,
+    // dataBlocks: null,
+  });
+  // reader
 
   const fetchMessage = useCallback(async () => {
     if (isLoading) return;
@@ -309,6 +324,31 @@ const HomePage = () => {
     }
   };
 
+  const handleSendFile = () => {
+    const newSendMessage = {
+      type: fileInfo.isImage ? "IMAGE" : "FILE",
+      sender: {
+        userId: userLoggedIn?.id,
+        username: userLoggedIn?.username,
+      },
+      sendTo: currentChannel.id ? currentChannel.id : null,
+      // userId: currentChannel.userId ? currentChannel.userId : null,
+      file: fileInfo ? fileInfo : null,
+    };
+    console.log(
+      "🚀 ~ file: HomePage.jsx:337 ~ handleSendFile ~ newSendMessage:",
+      newSendMessage
+    );
+    if (currentChannel?.type == "group") {
+      console.log("🚀 ~ file: HomePage.jsx:348 ~ send to group ~ :");
+      send(`/app/file/group/${currentChannel.id}`, newSendMessage, {});
+    } else {
+      console.log("🚀 ~ file: HomePage.jsx:348 ~ send to user ~ :");
+      send("/app/file/pm", newSendMessage, {});
+    }
+    scrollToBottom();
+  };
+
   const handleSendNotificationAddMember = (user) => {
     const newSendMessage = {
       position: "right",
@@ -347,7 +387,8 @@ const HomePage = () => {
     name,
     messageTime,
     idChannel,
-    userId
+    userId,
+    type
   ) => {
     setCurrentChannel({
       id: idChannel,
@@ -355,6 +396,7 @@ const HomePage = () => {
       isOnline: isOnline,
       messageTime: messageTime,
       userId,
+      type,
     });
 
     handleGetCurrentChannelMessages({
@@ -395,11 +437,29 @@ const HomePage = () => {
       subscribe(path, subscribeChat);
     }
     setNewMessage(message);
+    console.log(
+      "🚀 ~ file: HomePage.jsx:442 ~ subscribeChat ~ message:",
+      message
+    );
   };
 
   const subscribeUserChatPM = () => {
     const path = `/user/${userLoggedIn.id}/pm`;
     subscribe(path, subscribeChat);
+  };
+
+  const subscribeSendFile = () => {
+    const fileTransferPath = `/user/${userLoggedIn.id}/file-transfer`;
+
+    const callback = (message) => {
+      if (currentChannel?.type === "group") {
+        const groupPath = `/topic/group/${message.channelId}`;
+        subscribe(groupPath, subscribeChat);
+        fetchData();
+      }
+    };
+
+    subscribe(fileTransferPath, callback);
   };
 
   const subscribeNewGroup = () => {
@@ -461,6 +521,7 @@ const HomePage = () => {
       subscribeUserVideoCall();
       sendStatusToServer();
       subscribeNewGroup();
+      subscribeSendFile();
     };
   }, [client]);
 
@@ -555,6 +616,17 @@ const HomePage = () => {
   if (token == null) return <div></div>;
   return (
     <>
+      {sendFile && currentChannel.id != "" && (
+        <SendFilePopUp
+          userLoggedIn={userLoggedIn}
+          currentChannel={currentChannel}
+          setSendFile={setSendFile}
+          fileInfo={fileInfo}
+          setFileInfo={setFileInfo}
+          handleSendFile={handleSendFile}
+        />
+      )}
+
       {!popup.isHidden && !receivedCall && (
         <Popup handleClose={handleClosePopup} message={popup.message}></Popup>
       )}
@@ -702,7 +774,8 @@ const HomePage = () => {
                             item.channelName,
                             item.createdAt,
                             item.channelId,
-                            item?.userId
+                            item?.userId,
+                            item?.type
                           );
                         }}
                         setCurrentChannelId={setCurrentChannelId}
@@ -848,7 +921,15 @@ const HomePage = () => {
                         : "float-neumorphism-chat feature-btn"
                     } flex items-center justify-center text-[#495FB8]`}
                   >
-                    <AiOutlinePlus size={20} />
+                    <AiOutlinePlus
+                      size={20}
+                      onClick={() => {
+                        // setFileInfo({
+                        //   ...,
+                        // })
+                        setSendFile((pre) => true);
+                      }}
+                    />
                   </button>
                 </div>
                 <input
