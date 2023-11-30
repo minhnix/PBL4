@@ -22,6 +22,7 @@ import MessageReceived from "../components/MessageReceived";
 import ReceivedCallPopup from "../components/ReceivedCallPopUp";
 import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import Popup from "../components/Popup";
+import { SERVER_URL } from "../config";
 
 const HomePage = () => {
   const { logout } = useAuth();
