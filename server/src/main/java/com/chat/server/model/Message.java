@@ -28,5 +28,6 @@ public class Message {
     private String sendTo;
     private String content;
     private ChatMessage.Type type;
+    private String fileUrl;
     private Instant createdAt;
 }

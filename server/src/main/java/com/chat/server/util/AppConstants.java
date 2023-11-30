@@ -8,6 +8,6 @@ public interface AppConstants {
     String SORT_DES = "des";
     String SORT_BY_CREATED_AT = "createdAt";
     int MAX_PAGE_SIZE = 50;
-    String IMAGE_PATH = "images/";
+    String UPLOAD_DIR = "upload-dir";
 
 }
