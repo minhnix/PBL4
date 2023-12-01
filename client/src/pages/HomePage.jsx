@@ -92,17 +92,6 @@ const HomePage = () => {
   });
 
   const [sendFile, setSendFile] = useState(false);
-  const [fileInfo, setFileInfo] = useState({
-    senderId: userLoggedIn.id,
-    recieverId: "",
-    fileName: "",
-    fileSize: "",
-    isImage: false,
-    previewUrl: "",
-    data: null,
-    // dataBlocks: null,
-  });
-  // reader
 
   const fetchMessage = useCallback(async () => {
     if (isLoading) return;
@@ -324,27 +313,22 @@ const HomePage = () => {
     }
   };
 
-  const handleSendFile = () => {
+  const handleSendFile = (fileInfo) => {
     const newSendMessage = {
       type: fileInfo.isImage ? "IMAGE" : "FILE",
       sender: {
         userId: userLoggedIn?.id,
         username: userLoggedIn?.username,
       },
-      sendTo: currentChannel.id ? currentChannel.id : null,
-      // userId: currentChannel.userId ? currentChannel.userId : null,
-      file: fileInfo ? fileInfo : null,
+      sendTo: currentChannel.userId ? currentChannel.userId : null,
+      channelId: currentChannel.id,
+      content: fileInfo.fileName,
+      fileUrl: fileInfo.fileDownloadUri,
     };
-    console.log(
-      "🚀 ~ file: HomePage.jsx:337 ~ handleSendFile ~ newSendMessage:",
-      newSendMessage
-    );
     if (currentChannel?.type == "group") {
-      console.log("🚀 ~ file: HomePage.jsx:348 ~ send to group ~ :");
-      send(`/app/file/group/${currentChannel.id}`, newSendMessage, {});
+      send(`/app/chat/group/${currentChannel.id}`, newSendMessage, {});
     } else {
-      console.log("🚀 ~ file: HomePage.jsx:348 ~ send to user ~ :");
-      send("/app/file/pm", newSendMessage, {});
+      send("/app/chat/pm", newSendMessage, {});
     }
     scrollToBottom();
   };
@@ -448,20 +432,6 @@ const HomePage = () => {
     subscribe(path, subscribeChat);
   };
 
-  const subscribeSendFile = () => {
-    const fileTransferPath = `/user/${userLoggedIn.id}/file-transfer`;
-
-    const callback = (message) => {
-      if (currentChannel?.type === "group") {
-        const groupPath = `/topic/group/${message.channelId}`;
-        subscribe(groupPath, subscribeChat);
-        fetchData();
-      }
-    };
-
-    subscribe(fileTransferPath, callback);
-  };
-
   const subscribeNewGroup = () => {
     const path = `/user/${userLoggedIn.id}/join-group`;
     const callback = (message) => {
@@ -521,7 +491,6 @@ const HomePage = () => {
       subscribeUserVideoCall();
       sendStatusToServer();
       subscribeNewGroup();
-      subscribeSendFile();
     };
   }, [client]);
 
@@ -618,11 +587,7 @@ const HomePage = () => {
     <>
       {sendFile && currentChannel.id != "" && (
         <SendFilePopUp
-          userLoggedIn={userLoggedIn}
-          currentChannel={currentChannel}
           setSendFile={setSendFile}
-          fileInfo={fileInfo}
-          setFileInfo={setFileInfo}
           handleSendFile={handleSendFile}
         />
       )}
@@ -880,12 +845,16 @@ const HomePage = () => {
                           content={message?.content}
                           username={message?.sender.username}
                           createdAt={message?.createdAt}
+                          type={message?.type}
+                          fileUrl={message?.fileUrl}
                         />
                       ) : (
                         <MessageSend
                           key={message?.id}
                           createdAt={message?.createdAt}
                           content={message?.content}
+                          type={message?.type}
+                          fileUrl={message?.fileUrl}
                         />
                       )
                     )
@@ -924,10 +893,7 @@ const HomePage = () => {
                     <AiOutlinePlus
                       size={20}
                       onClick={() => {
-                        // setFileInfo({
-                        //   ...,
-                        // })
-                        setSendFile((pre) => true);
+                        currentChannel?.id && setSendFile(true);
                       }}
                     />
                   </button>
