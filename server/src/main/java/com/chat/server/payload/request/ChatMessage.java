@@ -25,6 +25,7 @@ public class ChatMessage {
     private String channelId;
     private String content;
     private Type type;
+    private String fileUrl;
 }
 
 
