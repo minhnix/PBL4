@@ -25,6 +25,7 @@ import Popup from "../components/Popup";
 import { SERVER_URL } from "../config";
 
 const HomePage = () => {
+  const currentChannelIdRef = useRef("");
   const { logout } = useAuth();
   const token = localStorage.getItem("token");
   const client = useContext(StompContext).stompClient;
@@ -98,7 +99,6 @@ const HomePage = () => {
 
     setIsLoading(false);
   }, [isLoading]);
-
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       const target = entries[0];
@@ -156,7 +156,7 @@ const HomePage = () => {
             },
           }
         );
-        setRenderMessages([...renderMessages, ...res.data.data]);
+        setRenderMessages((pre) => [...pre, ...res.data.data]);
         setPreCursor((pre) => res.data.previousCursor);
         setNextCursor(res.data.nextCursor);
       } catch (err) {
@@ -356,7 +356,7 @@ const HomePage = () => {
       messageTime: messageTime,
       userId,
     });
-
+    currentChannelIdRef.current = idChannel;
     handleGetCurrentChannelMessages({
       id: idChannel,
       preCursor: "",
@@ -388,13 +388,14 @@ const HomePage = () => {
       return;
     }
   }, []);
-
   const subscribeChat = (message) => {
     if (message.type == "CREATE") {
       const path = "/topic/group/" + message.channelId + "/chat";
       subscribe(path, subscribeChat);
     }
-    setNewMessage(message);
+    if (currentChannelIdRef.current == message.channelId)
+      setRenderMessages((pre) => [message, ...pre]);
+    setNewMessage((pre) => message);
   };
 
   const subscribeUserChatPM = () => {
@@ -467,12 +468,6 @@ const HomePage = () => {
   useEffect(() => {
     if (newMessage == null) return;
     reArrangeUsersOnMessageSend(newMessage.channelId, newMessage);
-    if (
-      newMessage.channelId === currentChannel.id ||
-      newMessage.channelId == currentChannelId
-    ) {
-      setRenderMessages((pre) => [newMessage, ...pre]);
-    }
   }, [newMessage]);
 
   const handleOnlineStatus = () => {
