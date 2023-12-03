@@ -20,7 +20,7 @@ import { StompContext } from "usestomp-hook/lib/Provider";
 import VideoCallButton from "../components/VideoCallButton";
 import MessageReceived from "../components/MessageReceived";
 import ReceivedCallPopup from "../components/ReceivedCallPopUp";
-import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlinePlus } from "react-icons/ai";
 import Popup from "../components/Popup";
 import { SERVER_URL } from "../config";
 import SendFilePopUp from "../components/SendFilePopUp";
@@ -315,7 +315,7 @@ const HomePage = () => {
 
   const handleSendFile = (fileInfo) => {
     const newSendMessage = {
-      type: fileInfo.isImage ? "IMAGE" : "FILE",
+      type: fileInfo.isImage ? "IMAGE" : fileInfo.isVideo ? "VIDEO" : "FILE",
       sender: {
         userId: userLoggedIn?.id,
         username: userLoggedIn?.username,
@@ -822,7 +822,7 @@ const HomePage = () => {
                 } `}
               >
                 <div
-                  className=" flex flex-col gap-3 overflow-auto overflow-x-hidden h-full py-4  "
+                  className=" flex flex-col gap-4 overflow-auto overflow-x-hidden h-full py-4  "
                   id="chatContent"
                   ref={chatContentRef}
                   style={{ flexDirection: "column-reverse" }}
@@ -860,14 +860,18 @@ const HomePage = () => {
                     )
                   ) : (
                     <div className="flex flex-col justify-center h-full items-center gap-4">
-                      <span className={`${isDarkTheme && "text-white"}`}>
-                        Select Channel to Show Messages
-                      </span>
                       <img
                         className="w-[400px] h-[400px]"
-                        src="https://i.redd.it/rwhpkq916y3z.jpg"
+                        src="../../public/Trường_Đại_học_Bách_khoa,_Đại_học_Đà_Nẵng.svg.png"
                         alt="Nothing"
                       />
+                      <h1
+                        className={`text-6xl font-bold mt-2 ${
+                          isDarkTheme && "text-white"
+                        }`}
+                      >
+                        DUT Chat
+                      </h1>
                     </div>
                   )}
                   {currentChannel.id != "" && (
@@ -883,7 +887,7 @@ const HomePage = () => {
                 }`}
               >
                 <div className="w-[40px] flex items-center justify-center">
-                  <button
+                  {/* <button
                     className={` w-[40px] h-[40px] rounded-full cursor-pointer feature-btn ${
                       isDarkTheme
                         ? "float-neumorphism-chat-dark feature-btn-dark"
@@ -896,6 +900,18 @@ const HomePage = () => {
                         currentChannel?.id && setSendFile(true);
                       }}
                     />
+                  </button> */}
+                  <button
+                    className={` w-[40px] h-[40px] rounded-full cursor-pointer feature-btn ${
+                      isDarkTheme
+                        ? "float-neumorphism-chat-dark feature-btn-dark"
+                        : "float-neumorphism-chat feature-btn"
+                    } flex items-center justify-center text-[#495FB8]`}
+                    onClick={() => {
+                      currentChannel?.id && setSendFile(true);
+                    }}
+                  >
+                    <AiOutlinePlus size={20} />
                   </button>
                 </div>
                 <input
@@ -945,6 +961,7 @@ const HomePage = () => {
             action={"Create"}
           />
         )}
+        <div id="portal-root"></div>
       </div>
     </>
   );
