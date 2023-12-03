@@ -20,9 +20,10 @@ import { StompContext } from "usestomp-hook/lib/Provider";
 import VideoCallButton from "../components/VideoCallButton";
 import MessageReceived from "../components/MessageReceived";
 import ReceivedCallPopup from "../components/ReceivedCallPopUp";
-import { AiOutlineSearch, AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlinePlus } from "react-icons/ai";
 import Popup from "../components/Popup";
 import { SERVER_URL } from "../config";
+import SendFilePopUp from "../components/SendFilePopUp";
 
 const HomePage = () => {
   const currentChannelIdRef = useRef("");
@@ -63,6 +64,7 @@ const HomePage = () => {
     name: "",
     messageTime: "",
     userId: null,
+    type: "",
   });
   const [currentChannelId, setCurrentChannelId] = useState("");
   //all channels haven't messages
@@ -89,6 +91,8 @@ const HomePage = () => {
     isHidden: true,
     message: "",
   });
+
+  const [sendFile, setSendFile] = useState(false);
 
   const fetchMessage = useCallback(async () => {
     if (isLoading) return;
@@ -309,6 +313,26 @@ const HomePage = () => {
     }
   };
 
+  const handleSendFile = (fileInfo) => {
+    const newSendMessage = {
+      type: fileInfo.isImage ? "IMAGE" : fileInfo.isVideo ? "VIDEO" : "FILE",
+      sender: {
+        userId: userLoggedIn?.id,
+        username: userLoggedIn?.username,
+      },
+      sendTo: currentChannel.userId ? currentChannel.userId : null,
+      channelId: currentChannel.id,
+      content: fileInfo.fileName,
+      fileUrl: fileInfo.fileDownloadUri,
+    };
+    if (currentChannel?.type == "group") {
+      send(`/app/chat/group/${currentChannel.id}`, newSendMessage, {});
+    } else {
+      send("/app/chat/pm", newSendMessage, {});
+    }
+    scrollToBottom();
+  };
+
   const handleSendNotificationAddMember = (user) => {
     const newSendMessage = {
       position: "right",
@@ -347,7 +371,8 @@ const HomePage = () => {
     name,
     messageTime,
     idChannel,
-    userId
+    userId,
+    type
   ) => {
     setCurrentChannel({
       id: idChannel,
@@ -355,6 +380,7 @@ const HomePage = () => {
       isOnline: isOnline,
       messageTime: messageTime,
       userId,
+      type,
     });
     currentChannelIdRef.current = idChannel;
     handleGetCurrentChannelMessages({
@@ -550,6 +576,13 @@ const HomePage = () => {
   if (token == null) return <div></div>;
   return (
     <>
+      {sendFile && currentChannel.id != "" && (
+        <SendFilePopUp
+          setSendFile={setSendFile}
+          handleSendFile={handleSendFile}
+        />
+      )}
+
       {!popup.isHidden && !receivedCall && (
         <Popup handleClose={handleClosePopup} message={popup.message}></Popup>
       )}
@@ -697,7 +730,8 @@ const HomePage = () => {
                             item.channelName,
                             item.createdAt,
                             item.channelId,
-                            item?.userId
+                            item?.userId,
+                            item?.type
                           );
                         }}
                         setCurrentChannelId={setCurrentChannelId}
@@ -779,7 +813,7 @@ const HomePage = () => {
                 } `}
               >
                 <div
-                  className=" flex flex-col gap-3 overflow-auto overflow-x-hidden h-full py-4  "
+                  className=" flex flex-col gap-4 overflow-auto overflow-x-hidden h-full py-4  "
                   id="chatContent"
                   ref={chatContentRef}
                   style={{ flexDirection: "column-reverse" }}
@@ -802,25 +836,33 @@ const HomePage = () => {
                           content={message?.content}
                           username={message?.sender.username}
                           createdAt={message?.createdAt}
+                          type={message?.type}
+                          fileUrl={message?.fileUrl}
                         />
                       ) : (
                         <MessageSend
                           key={message?.id}
                           createdAt={message?.createdAt}
                           content={message?.content}
+                          type={message?.type}
+                          fileUrl={message?.fileUrl}
                         />
                       )
                     )
                   ) : (
                     <div className="flex flex-col justify-center h-full items-center gap-4">
-                      <span className={`${isDarkTheme && "text-white"}`}>
-                        Select Channel to Show Messages
-                      </span>
                       <img
                         className="w-[400px] h-[400px]"
-                        src="https://i.redd.it/rwhpkq916y3z.jpg"
+                        src="../../public/Trường_Đại_học_Bách_khoa,_Đại_học_Đà_Nẵng.svg.png"
                         alt="Nothing"
                       />
+                      <h1
+                        className={`text-6xl font-bold mt-2 ${
+                          isDarkTheme && "text-white"
+                        }`}
+                      >
+                        DUT Chat
+                      </h1>
                     </div>
                   )}
                   {currentChannel.id != "" && (
@@ -836,12 +878,29 @@ const HomePage = () => {
                 }`}
               >
                 <div className="w-[40px] flex items-center justify-center">
+                  {/* <button
+                    className={` w-[40px] h-[40px] rounded-full cursor-pointer feature-btn ${
+                      isDarkTheme
+                        ? "float-neumorphism-chat-dark feature-btn-dark"
+                        : "float-neumorphism-chat feature-btn"
+                    } flex items-center justify-center text-[#495FB8]`}
+                  >
+                    <AiOutlinePlus
+                      size={20}
+                      onClick={() => {
+                        currentChannel?.id && setSendFile(true);
+                      }}
+                    />
+                  </button> */}
                   <button
                     className={` w-[40px] h-[40px] rounded-full cursor-pointer feature-btn ${
                       isDarkTheme
                         ? "float-neumorphism-chat-dark feature-btn-dark"
                         : "float-neumorphism-chat feature-btn"
                     } flex items-center justify-center text-[#495FB8]`}
+                    onClick={() => {
+                      currentChannel?.id && setSendFile(true);
+                    }}
                   >
                     <AiOutlinePlus size={20} />
                   </button>
@@ -893,6 +952,7 @@ const HomePage = () => {
             action={"Create"}
           />
         )}
+        <div id="portal-root"></div>
       </div>
     </>
   );
