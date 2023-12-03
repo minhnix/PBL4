@@ -79,8 +79,9 @@ const VideoCallButton = ({
             ? "float-neumorphism-chat-dark feature-btn-dark"
             : "float-neumorphism-chat feature-btn"
         } flex items-center justify-center text-[#495FB8]`}
+        onClick={handleClickButton}
       >
-        <BsCameraVideoFill onClick={handleClickButton} size={28} />
+        <BsCameraVideoFill size={28} />
       </button>
     </>
   );
