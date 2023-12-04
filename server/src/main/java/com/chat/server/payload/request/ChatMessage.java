@@ -17,7 +17,8 @@ public class ChatMessage {
         LEAVE,
         CREATE,
         FILE,
-        IMAGE
+        IMAGE,
+        VIDEO
     }
 
     private UserWithUsername sender;
