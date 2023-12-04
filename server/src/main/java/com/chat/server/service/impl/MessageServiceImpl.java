@@ -50,6 +50,9 @@ public class MessageServiceImpl implements MessageService {
             channelId = chatMessage.getChannelId();
         }
         message.channelId(new ObjectId(channelId));
+        if (chatMessage.getFileUrl() != null) {
+            message.fileUrl(chatMessage.getFileUrl());
+        }
         return messageRepo.save(message.build());
     }
 

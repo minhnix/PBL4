@@ -12,7 +12,9 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import javax.naming.SizeLimitExceededException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +30,12 @@ public class GlobalHandlerException {
             resp.put(fieldName, message);
         });
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse handleSizeLimitExceededException(MaxUploadSizeExceededException e) {
+        return new ApiResponse(false, "File size must be less than 10MB");
     }
 
     @ExceptionHandler(BadRequestException.class)
