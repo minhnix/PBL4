@@ -85,6 +85,7 @@ const HomePage = () => {
     callId: null,
     name: null,
     sendTo: null,
+    type: null,
   });
 
   const [popup, setPopup] = useState({
@@ -460,6 +461,7 @@ const HomePage = () => {
     groups.forEach((group) => {
       const path = "/topic/group/" + group + "/chat";
       subscribe(path, subscribeChat);
+      subscribeGroupVideoCall(group);
     });
   };
 
@@ -471,10 +473,31 @@ const HomePage = () => {
           name: message.sender.username,
           callId: message.payload.callId,
           sendTo: message.sender.userId,
+          type: "pm",
         });
         setReceivedCall(true);
       } else if (message.type == "CANCEL" || message.type == "STOP") {
         setReceivedCall(false);
+      }
+    };
+    subscribe(path, callback);
+  };
+
+  const subscribeGroupVideoCall = (groupId) => {
+    const path = `/topic/group/${groupId}/new-call`;
+    const callback = function (message) {
+      console.log(userLoggedIn, message);
+      if (
+        message.type == "CREATE" &&
+        userLoggedIn.id != message.sender.userId
+      ) {
+        setReceivedCallUser({
+          name: message.sender.username,
+          sendTo: message.payload.channelId,
+          callId: message.payload.callId,
+          type: "group",
+        });
+        setReceivedCall(true);
       }
     };
     subscribe(path, callback);
@@ -591,6 +614,7 @@ const HomePage = () => {
           name={receivedCallUser.name}
           callId={receivedCallUser.callId}
           sendTo={receivedCallUser.sendTo}
+          type={receivedCallUser.type}
           handleClose={handleCloseCallPopup}
         />
       )}

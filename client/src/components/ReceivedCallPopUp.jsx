@@ -5,23 +5,46 @@ import { useMessage } from "../context/message.context";
 import { useStomp } from "usestomp-hook/lib";
 import { CLIENT_URL } from "../config";
 
-const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo }) => {
+const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo, type }) => {
   const { userLoggedIn } = useMessage();
   const { send } = useStomp();
+  const message =
+    type == "pm"
+      ? `${name} is calling you.`
+      : `${name} is calling group ${callId}`;
   const cancelCall = () => {
-    const message = {
-      type: "CANCEL",
-      sender: {
-        userId: userLoggedIn.id,
-        username: userLoggedIn.username,
-      },
-      sendTo,
-      payload: {
-        callId,
-      },
-    };
-    send("/app/call/pm", message, {});
+    if (type == "pm") {
+      const message = {
+        type: "CANCEL",
+        sender: {
+          userId: userLoggedIn.id,
+          username: userLoggedIn.username,
+        },
+        sendTo,
+        payload: {
+          callId,
+        },
+      };
+      send("/app/call/pm", message, {});
+    }
     handleClose();
+  };
+
+  const handleClickCall = () => {
+    handleClose();
+    if (type == "pm") {
+      window.open(
+        `${CLIENT_URL}/video/?mode=join&call_id=${callId}&send=${sendTo}`,
+        "_blank",
+        "rel=noopener noreferrer"
+      );
+    } else {
+      window.open(
+        `${CLIENT_URL}/room/${sendTo}`,
+        "_blank",
+        "rel=noopener noreferrer"
+      );
+    }
   };
   return (
     <div className={`absolute top-0 z-40 left-0 bg-black/30 w-full h-full`}>
@@ -31,7 +54,7 @@ const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo }) => {
             <AiOutlineClose className="m-auto" size={12} onClick={cancelCall} />
           </div>
           <Avatar name={name} className=" mx-auto" />
-          <p className="text-lg font-bold">{name} is calling you.</p>
+          <p className="text-lg font-bold">{message}</p>
           <p className="mt-[-12px]">
             The call will start as soon as you accept.
           </p>
@@ -51,14 +74,7 @@ const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo }) => {
                 <IoCall
                   size={18}
                   className=" text-white"
-                  onClick={() => {
-                    handleClose();
-                    window.open(
-                      `${CLIENT_URL}/video/?mode=join&call_id=${callId}&send=${sendTo}`,
-                      "_blank",
-                      "rel=noopener noreferrer"
-                    );
-                  }}
+                  onClick={() => handleClickCall()}
                 />
               </button>
               <p className="text-sm font-bold text-green-500 ">Accept</p>
