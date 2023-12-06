@@ -7,6 +7,7 @@ import com.chat.server.model.CallUserInfo;
 import com.chat.server.model.UserWithUsername;
 import com.chat.server.payload.request.CallMessage;
 import com.chat.server.payload.request.CallRequest;
+import com.chat.server.payload.request.ChatMessage;
 import com.chat.server.security.CurrentUser;
 import com.chat.server.security.CustomUserDetails;
 import com.chat.server.security.UserPrincipal;
@@ -60,6 +61,10 @@ public class CallController {
         if (CallMessage.Type.JOIN == callMessage.getType()) {
             try {
                 List<CallUserInfo> callUserInfos = callStorage.userJoin(groupId, principal.getName(), principal.getUsername());
+                if (callUserInfos.size() == 1) {
+                    //First call
+                    template.convertAndSend("/topic/group/" + groupId + "/new-call", CallMessage.Type.CREATE);
+                }
                 callMessage.getPayload().setInfo(new CallUserInfo(principal.getName(), principal.getUsername(), true, true));
                 callMessage.getPayload().setInfos(callUserInfos);
                 template.convertAndSend("/topic/group/" + groupId + "/join-call", callMessage);
