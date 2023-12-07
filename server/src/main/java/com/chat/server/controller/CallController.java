@@ -7,9 +7,12 @@ import com.chat.server.model.CallUserInfo;
 import com.chat.server.model.UserWithUsername;
 import com.chat.server.payload.request.CallMessage;
 import com.chat.server.payload.request.CallRequest;
+import com.chat.server.payload.request.ChatMessage;
+import com.chat.server.payload.response.ChannelInfo;
 import com.chat.server.security.CurrentUser;
 import com.chat.server.security.CustomUserDetails;
 import com.chat.server.security.UserPrincipal;
+import com.chat.server.service.ChannelService;
 import com.chat.server.service.call.CallService;
 import com.chat.server.service.call.CallStorage;
 import com.chat.server.service.scheduler.TimeOutCallScheduler;
@@ -21,6 +24,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +36,7 @@ public class CallController {
     private final CallStorage callStorage;
     private final SimpMessagingTemplate template;
     private final TimeOutCallScheduler timeOutCallScheduler;
+    private final ChannelService channelService;
 
     @MessageMapping("/call/pm")
     public void handleCallPM(@Payload CallMessage callMessage) {
@@ -60,6 +65,10 @@ public class CallController {
         if (CallMessage.Type.JOIN == callMessage.getType()) {
             try {
                 List<CallUserInfo> callUserInfos = callStorage.userJoin(groupId, principal.getName(), principal.getUsername());
+                if (callUserInfos.size() == 1) {
+                    //First call
+                    sendNewCallGroupMessage(callMessage, groupId, principal);
+                }
                 callMessage.getPayload().setInfo(new CallUserInfo(principal.getName(), principal.getUsername(), true, true));
                 callMessage.getPayload().setInfos(callUserInfos);
                 template.convertAndSend("/topic/group/" + groupId + "/join-call", callMessage);
@@ -132,5 +141,17 @@ public class CallController {
             callMessage.getPayload().setCallId(call1.getId());
             template.convertAndSendToUser(callMessage.getSender().getUserId(), "/call", callMessage);
         }
+    }
+
+    private void sendNewCallGroupMessage(CallMessage callMessage, String groupId, Principal principal) {
+        CallMessage callMessage1 = new CallMessage();
+        callMessage1.setType(CallMessage.Type.CREATE);
+        callMessage1.setSender(callMessage.getSender());
+        CallRequest callRequest = new CallRequest();
+        callRequest.setChannelId(groupId);
+        ChannelInfo channelInfo = channelService.findChannel(groupId, principal.getName());
+        callRequest.setCallId(channelInfo.getName());
+        callMessage1.setPayload(callRequest);
+        template.convertAndSend("/topic/group/" + groupId + "/new-call", callMessage1);
     }
 }
