@@ -240,6 +240,9 @@ const HomePage = () => {
         `${SERVER_URL}/api/v1/channels/create`,
         transformData(listUsers)
       );
+      setUsers([]);
+      setListUsers([]);
+      setChannelName("");
     } catch (err) {
       console.log(
         "🚀 ~ file: HomePage.jsx:200 ~ handleCreateChannel ~ err:",
@@ -253,7 +256,7 @@ const HomePage = () => {
     unsubscribe("/topic/group/" + body.idChannel + "/chat");
     try {
       const res = await axios.delete(
-        "${SERVER_URL}/api/v1/channels/removeUser",
+        `${SERVER_URL}/api/v1/channels/removeUser`,
         {
           data: body,
         }
@@ -268,7 +271,7 @@ const HomePage = () => {
   const handleAddMember = async (body) => {
     try {
       const res = await axios.post(
-        "${SERVER_URL}/api/v1/channels/addUser",
+        `${SERVER_URL}/api/v1/channels/addUser`,
         body
       );
       handleSendNotificationAddMember(body);
@@ -605,11 +608,26 @@ const HomePage = () => {
           >
             {/* Sidebar */}
             <div
-              className={`flex flex-col w-[80px] h-full items-center justify-between ${
+              className={`relative flex flex-col w-[80px] h-full items-center justify-between ${
                 isDarkTheme ? "float-neumorphism-dark" : "float-neumorphism"
               }  rounded-lg p-3`}
             >
-              <Avatar name={userLoggedIn?.username} size={12} />
+              <div className="relative group cursor-pointer ">
+                <Avatar
+                  name={userLoggedIn?.username}
+                  size={12}
+                  className="group-hover:name-block"
+                />
+                <p
+                  className={`name hidden px-4 py-2 absolute top-0 rounded-md left-[-150px] group-hover:block 
+                  font-bold ${
+                    isDarkTheme ? "bg-white" : "text-black bg-gray-200 "
+                  }
+              `}
+                >
+                  {userLoggedIn?.username}
+                </p>
+              </div>
               <div className="px-1 py-1 cursor-pointer relative">
                 <BiMenu
                   size={32}
@@ -838,6 +856,7 @@ const HomePage = () => {
                           createdAt={message?.createdAt}
                           type={message?.type}
                           fileUrl={message?.fileUrl}
+                          isGroup={currentChannel?.type == "group"}
                         />
                       ) : (
                         <MessageSend
@@ -948,7 +967,7 @@ const HomePage = () => {
             isEmptyChannelName={isEmptyChannelName}
             handleCreateChannel={handleCreateChannel}
             channelName={channelName}
-            header={"New Message "}
+            header={"New Conversation"}
             action={"Create"}
           />
         )}
