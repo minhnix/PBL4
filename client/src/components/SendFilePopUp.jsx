@@ -148,7 +148,7 @@ const SendFilePopUp = ({ setSendFile, handleSendFile }) => {
                         <div className="relative w-[300px]  h-[200px] flex-shrink-0">
                           <AiOutlineClose
                             size={20}
-                            className="absolute top-2 z-100 right-2 bg-slate-200 rounded-full hover:opacity-60 cursor-pointer"
+                            className="absolute top-2 z-100 right-2 bg-slate-200 rounded-full hover:opacity-60 cursor-pointer z-10"
                             onClick={(e) => {
                               if (fileInfo.length === 0) closePopup();
                               console.log("Close button clicked");
@@ -163,7 +163,7 @@ const SendFilePopUp = ({ setSendFile, handleSendFile }) => {
                           />
                           <video
                             key={index}
-                            className="w-full h-full object-cover z-10"
+                            className="w-full h-full object-cover "
                             controls
                           >
                             <source src={data.previewImage} controls />
@@ -176,7 +176,7 @@ const SendFilePopUp = ({ setSendFile, handleSendFile }) => {
                         <div className="flex  justify-center relative min-w-[250px] bg-gray-500 text-white py-2 px-4 rounded items-center gap-2 ">
                           <AiOutlineClose
                             size={20}
-                            className="absolute top-2 right-2 bg-slate-200  text-black rounded-full hover:opacity-60 cursor-pointer"
+                            className="absolute top-2 right-2 bg-slate-200  text-black rounded-full hover:opacity-60 cursor-pointer z-10"
                             onClick={() => {
                               if (fileInfo.length == 1) closePopup();
                               setFileInfo(

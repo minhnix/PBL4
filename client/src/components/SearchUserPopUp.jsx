@@ -31,18 +31,17 @@ const SearchUserPopUp = ({
         className={`w-full flex items-center justify-center py-4 relative dark:text-white`}
       >
         <p className={` font-semibold`}>{header}</p>
-        <div>
-          <AiOutlineClose
-            size={16}
-            className={`absolute top-[35%] right-2 cursor-pointer `}
-            onClick={(e) => {
-              setIsShowAddPopup(false);
-              setListUsers([]);
-              setUsers([]);
-              setIsEmptyChannelName(false);
-            }}
-          />
-        </div>
+
+        <AiOutlineClose
+          size={16}
+          className={`absolute top-[35%] right-2 cursor-pointer  bg-gray-300 rounded-full p-[2px] w-[20px] h-[20px] hover:opacity-50 `}
+          onClick={(e) => {
+            setIsShowAddPopup(false);
+            setListUsers([]);
+            setUsers([]);
+            setIsEmptyChannelName(false);
+          }}
+        />
       </div>
       <div
         className={`w-full flex gap-2 px-2 py-2 border-y border-gray-300 dark:text-white`}
@@ -116,7 +115,7 @@ const SearchUserPopUp = ({
                 type="text"
                 required
                 placeholder="Enter name group chat"
-                className="px-2 py-2 border border-radius-4 border-black h-6 rounded-md outline-none"
+                className="px-2 py-4 border border-radius-4 border-black h-6 rounded-md outline-none"
                 onChange={(e) => {
                   setChannelName(e.target.value);
                 }}
