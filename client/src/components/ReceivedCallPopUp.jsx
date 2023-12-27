@@ -60,22 +60,20 @@ const ReceivedCallPopUp = ({ name, callId, handleClose, sendTo, type }) => {
           </p>
           <div className="flex my-2 gap-6">
             <div className="flex flex-col gap-2 items-center">
-              <button className="w-12 h-12 rounded-full border-2 bg-red-500 flex items-center justify-center hover:opacity-70">
-                <AiOutlineClose
-                  size={18}
-                  className="text-white "
-                  onClick={cancelCall}
-                />
+              <button
+                className="w-12 h-12 rounded-full border-2 bg-red-500 flex items-center justify-center hover:opacity-70"
+                onClick={cancelCall}
+              >
+                <AiOutlineClose size={18} className="text-white " />
               </button>
               <p className="text-sm font-bold text-red-600">Decline</p>
             </div>
             <div className="flex flex-col gap-2 items-center">
-              <button className="w-12 h-12 rounded-full border-2 bg-green-500 flex items-center justify-center hover:opacity-70">
-                <IoCall
-                  size={18}
-                  className=" text-white"
-                  onClick={() => handleClickCall()}
-                />
+              <button
+                className="w-12 h-12 rounded-full border-2 bg-green-500 flex items-center justify-center hover:opacity-70"
+                onClick={() => handleClickCall()}
+              >
+                <IoCall size={18} className=" text-white" />
               </button>
               <p className="text-sm font-bold text-green-500 ">Accept</p>
             </div>

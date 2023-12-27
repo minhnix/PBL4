@@ -10,7 +10,7 @@ import {
 } from "react-icons/ai";
 import { TfiHelpAlt } from "react-icons/tfi";
 import { isEmail, isPassword, isUsername } from "../utils/validation";
-import SERVER_URL from "../config";
+import { SERVER_URL } from "../config";
 
 export const SignUp = () => {
   const { login, setState } = useAuth();

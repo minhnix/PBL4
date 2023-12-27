@@ -52,28 +52,30 @@ const Room = () => {
               setPeers(peers);
               return;
             }
-            message.payload.infos.forEach((info) => {
-              let { userId, userName, enableVideo, enableAudio } = info;
-              if (userId != userLoggedIn.id) {
-                console.log(userLoggedIn.id + " :::: " + userId);
-                const peer = createPeer(userId, stream);
-                peer.userName = userName;
-                peer.peerID = userId;
-                peersRef.current.push({
-                  peerID: userId,
-                  peer,
-                  userName,
-                });
-                peers.push(peer);
-                setUserVideoAudio((preList) => {
-                  return {
-                    ...preList,
-                    [peer.userName]: { video: enableVideo, audio: enableAudio },
-                  };
-                });
-              }
+            // message.payload.infos.forEach((info) => {
+            let { userId, userName, enableVideo, enableAudio } =
+              message.payload.info;
+            // if (userId != userLoggedIn.id) {
+            console.log(userLoggedIn.id + " :::: " + userId);
+            const peer = createPeer(userId, stream);
+            peer.userName = userName;
+            peer.peerID = userId;
+            peersRef.current.push({
+              peerID: userId,
+              peer,
+              userName,
             });
-            setPeers(peers);
+            // peers.push(peer);
+            setPeers((pre) => [...pre, peer]);
+            setUserVideoAudio((preList) => {
+              return {
+                ...preList,
+                [peer.userName]: { video: enableVideo, audio: enableAudio },
+              };
+            });
+            // }
+            // });
+            // setPeers(peers);
           });
           subscribe(`/user/${userLoggedIn.id}/call`, (message) => {
             if (message.type == "CALL") {
