@@ -896,7 +896,7 @@ const HomePage = () => {
                     <div className="flex flex-col justify-center h-full items-center gap-4">
                       <img
                         className="w-[400px] h-[400px]"
-                        src="../../public/Trường_Đại_học_Bách_khoa,_Đại_học_Đà_Nẵng.svg.png"
+                        src="../../public/logo_truong.png"
                         alt="Nothing"
                       />
                       <h1
